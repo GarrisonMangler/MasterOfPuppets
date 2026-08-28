@@ -6,22 +6,45 @@ This document details configuration reloading, out-of-band live macro variable u
 
 ---
 
-## 1. Configuration Hot-Reload (`/mop reload` / `/mop loadconfig`)
+## 1. Configuration Hot-Reload
 
 ### 1.1 Command Syntax
 ```text
 /mop reload
 /mop loadconfig
+/mop reloadconfig
 ```
+
+All three commands are aliases for the same operation.
 
 ### 1.2 Behavior & Implementation
 * **Disk Reload**: Reads `MasterOfPuppets.json` directly from the user's plugin configuration directory (`DalamudApi.PluginInterface.ConfigFile`).
-* **In-Memory Refresh**: Calls `Config.UpdateFromJson(json)` to refresh all character lists, formations, window layouts, and macros in the running plugin instance without requiring a game restart or plugin toggle.
+* **In-Memory Refresh**: Calls `Config.UpdateFromJson(json)` to refresh character lists, formations, window layouts, macros, and saved Lua scripts in the running plugin instance without requiring a game restart or plugin toggle.
 * **IPC Synchronization**: Automatically triggers `IpcProvider.SyncConfiguration()` to broadcast the refreshed configuration across all local multi-boxed client instances.
 * **User Feedback**: Displays an in-game success notification upon completion or an error alert if the JSON is malformed.
 
-### 1.3 Relevant Files
-* `MasterOfPuppets/Commands/PluginCommandManager.cs`: Command parsing for `reload` and `loadconfig`.
+This reloads configuration data. It does **not** reload a newly built plugin DLL; DLL changes still require the normal Dalamud/plugin hot-reload path.
+
+### 1.3 Lua conductor trust
+
+Cross-PC `mopluarun` and `mopluastop` commands have a separate Lua conductor
+policy. `LuaConductorTrustMode` defaults to `self_only`. Set it to `allowlist`
+through **Settings > Trusted Lua Conductors** and populate
+`LuaTrustedConductors` with exact `Name@World` identities on receiving clients.
+The actual chat sender is authoritative; sender text inside an envelope cannot
+grant trust. Duplicate, stale, future-dated, and malformed Lua envelopes are
+rejected independently.
+
+`LuaDistributedReadinessEnabled` defaults to `false`. When enabled, cross-PC Lua
+uses opt-in formation staging and waits for conductor GO. Configure
+`LuaReadinessTimeoutSeconds` from 5 to 120 and
+`LuaReadinessTimeoutPolicy` as `abort`, `continue_ready`, or `continue_all`.
+Enable it only after all participating PCs run the same build and have matching
+participant formations; the Scripts window shows live protocol/participant
+diagnostics.
+
+### 1.4 Relevant Files
+* `MasterOfPuppets/Commands/PluginCommandManager.cs`: Command parsing for `reload`, `loadconfig`, and `reloadconfig`.
 * `MasterOfPuppets/Plugin.cs`: `ReloadConfigFromDisk()` implementation and IPC broadcast.
 
 ---

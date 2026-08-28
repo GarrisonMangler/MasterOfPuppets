@@ -8,6 +8,8 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 using MasterOfPuppets.Formations;
+using MasterOfPuppets.Ipc;
+using MasterOfPuppets.LuaScripting.Synchronization;
 using MasterOfPuppets.Util;
 
 using Lumina.Text.ReadOnly;
@@ -44,9 +46,13 @@ internal class ChatWatcher : IDisposable {
     };
 
     private readonly Dictionary<string, Action<string[], string>> CommandHandlers;
+    private readonly LuaReplayWindow _luaReplayWindow = new();
+    internal LuaDistributedSessionRegistry LuaDistributedSessions { get; } = new();
+    internal LuaDistributedLaunchController LuaDistributedLaunches { get; }
 
     public ChatWatcher(Plugin plugin) {
         Plugin = plugin;
+        LuaDistributedLaunches = new LuaDistributedLaunchController(plugin, LuaDistributedSessions);
         CommandHandlers = new(StringComparer.OrdinalIgnoreCase) {
             ["moprun"] = HandleRunMacro,
             ["mopstop"] = HandleStopMacroExecution,
@@ -55,6 +61,9 @@ internal class ChatWatcher : IDisposable {
             ["mopbrc"] = HandleBroadcastCharacterCommandExecution,
             ["mopbrg"] = HandleBroadcastGroupCommandExecution,
             ["mopformation"] = HandleFormationCommand,
+            ["mopluarun"] = HandleLuaRun,
+            ["mopluastop"] = HandleLuaStop,
+            ["mopluaphase"] = HandleLuaPhase,
         };
 
         DalamudApi.ChatGui.ChatMessage += OnChatMessage;
@@ -62,6 +71,7 @@ internal class ChatWatcher : IDisposable {
     }
 
     public void Dispose() {
+        LuaDistributedLaunches.CancelAll("plugin disposed");
         DalamudApi.ChatGui.ChatMessage -= OnChatMessage;
     }
 
@@ -104,10 +114,20 @@ internal class ChatWatcher : IDisposable {
 #endif
 
         if (CommandHandlers.TryGetValue(parsedArgs[0], out var action)) {
+            var suppressInternalLuaEnvelope = IsInternalLuaSyncEnvelope(parsedArgs);
             action.Invoke(parsedArgs.Skip(1).ToArray(), senderName);
-            // prevent show chat text
-            // isHandled = true;
+            if (suppressInternalLuaEnvelope && message is IHandleableChatMessage handleable)
+                handleable.PreventOriginal();
         }
+    }
+
+    internal static bool IsInternalLuaSyncEnvelope(IReadOnlyList<string> parsedArgs) {
+        return (parsedArgs.Count == 3
+                && parsedArgs[0].Equals("mopluarun", StringComparison.OrdinalIgnoreCase)
+                && IpcProvider.TryDecodeLuaChatSyncEnvelope(parsedArgs[2], out _))
+            || (parsedArgs.Count == 2
+                && parsedArgs[0].Equals("mopluaphase", StringComparison.OrdinalIgnoreCase)
+                && LuaDistributedWireCodec.TryDecode(parsedArgs[1], out _, out _));
     }
 
     private void HandleRunMacro(string[] args, string senderName) {
@@ -203,6 +223,143 @@ internal class ChatWatcher : IDisposable {
         Plugin.MacroHandler.EnqueueMacroActions("#mop-inline-macro-group", actions: [textCommand], delayBetweenActions: 0);
     }
 
+    private void HandleLuaRun(string[] args, string senderName) {
+        // The short public form mirrors moprun. Only the sender's own client
+        // expands it, preventing every listener from emitting a second run.
+        if (args.Length is 1 or 2
+            && (args.Length == 1 || args[1].StartsWith("-var=", StringComparison.OrdinalIgnoreCase))) {
+            if (IsLocalPlayerSender(senderName)) {
+                var inlineVariables = args.Length == 2
+                    ? ArgumentParser.ParseInlineVars(args[1])
+                    : null;
+                Plugin.IpcProvider.StartChatSyncedLuaScript(args[0], inlineVariables);
+            }
+            return;
+        }
+
+        if (args.Length != 2
+            || !IpcProvider.TryDecodeLuaChatSyncEnvelope(args[1], out var envelope)) {
+            DalamudApi.ChatGui.PrintError(
+                "Invalid synchronized Lua command envelope.");
+            return;
+        }
+
+        if (!IsTrustedLuaConductor(senderName, out var trustError)) {
+            DalamudApi.PluginLog.Warning($"[LuaSync] rejected run from {senderName}: {trustError}");
+            DalamudApi.ChatGui.PrintError($"[MoP] Lua synchronization rejected: {trustError}.");
+            return;
+        }
+        if (!_luaReplayWindow.TryAccept(
+                envelope.MessageId,
+                envelope.CreatedUnixMilliseconds,
+                DateTimeOffset.UtcNow,
+                out var replayError)) {
+            DalamudApi.PluginLog.Warning($"[LuaSync] rejected message {envelope.MessageId} from {senderName}: {replayError}");
+            return;
+        }
+
+        Plugin.IpcProvider.StartChatSyncedLuaScriptLocal(
+            args[0],
+            envelope,
+            senderName);
+    }
+
+    private void HandleLuaStop(string[] args, string senderName) {
+        if (!IsTrustedLuaConductor(senderName, out var reason)) {
+            DalamudApi.PluginLog.Warning($"[LuaSync] rejected stop from {senderName}: {reason}");
+            DalamudApi.ChatGui.PrintError($"[MoP] Lua stop rejected: {reason}.");
+            return;
+        }
+        Plugin.IpcProvider.StopLuaScript();
+    }
+
+    private void HandleLuaPhase(string[] args, string senderName) {
+        var decodeError = "expected one compact phase token";
+        if (args.Length != 1 || !LuaDistributedWireCodec.TryDecode(args[0], out var envelope, out decodeError)) {
+            DalamudApi.PluginLog.Warning($"[LuaSync] rejected phase frame from {senderName}: {decodeError}");
+            return;
+        }
+
+        var localIdentity = new LuaDistributedSenderIdentity(
+            DalamudApi.PlayerState.ContentId,
+            FormationCharacterName.FormatPlayerNameWorld(
+                DalamudApi.PlayerState.CharacterName,
+                DalamudApi.PlayerState.HomeWorld.ValueNullable?.Name.ToString()));
+        var configured = Plugin.Config.Characters
+            .Where(character => character.Cid != 0)
+            .Select(character => new LuaDistributedSenderIdentity(character.Cid, character.Name))
+            .ToArray();
+        if (!LuaDistributedSenderPolicy.MatchesClaimedContentId(
+                senderName,
+                envelope.SenderContentId,
+                localIdentity,
+                configured,
+                out var identityError)) {
+            DalamudApi.PluginLog.Warning($"[LuaSync] rejected phase sender {senderName}: {identityError}");
+            return;
+        }
+
+        if ((envelope.Kind is LuaDistributedMessageKind.Prepare or LuaDistributedMessageKind.Go
+                or LuaDistributedMessageKind.Stop or LuaDistributedMessageKind.ClockReply
+                or LuaDistributedMessageKind.SharedVariable)
+            && !IsTrustedLuaConductor(senderName, out var trustError)) {
+            DalamudApi.PluginLog.Warning($"[LuaSync] rejected conductor phase from {senderName}: {trustError}");
+            return;
+        }
+        if (!_luaReplayWindow.TryAccept(
+                envelope.MessageId.ToString("D"),
+                envelope.CreatedUnixMilliseconds,
+                DateTimeOffset.UtcNow,
+                out var replayError)) {
+            DalamudApi.PluginLog.Warning($"[LuaSync] rejected phase replay {envelope.MessageId} from {senderName}: {replayError}");
+            return;
+        }
+        if (!LuaDistributedSessions.TryAccept(
+                envelope,
+                FormationCharacterName.NormalizeWorldSeparator(senderName),
+                DateTimeOffset.UtcNow,
+                out var session,
+                out var protocolError)) {
+            DalamudApi.PluginLog.Warning($"[LuaSync] rejected {envelope.Kind} for {envelope.RunToken}: {protocolError}");
+            return;
+        }
+        DalamudApi.PluginLog.Debug(
+            $"[LuaSync] {envelope.Kind} {envelope.RunToken} from {senderName}; "
+            + $"phase={session!.Protocol.Phase} ready={session.Protocol.ReadyCount}/{session.Protocol.Participants.Count}");
+        LuaDistributedLaunches.OnPhaseAccepted(envelope);
+        if (envelope.Kind == LuaDistributedMessageKind.Stop) {
+            foreach (var run in Plugin.LuaScriptManager.ActiveRuns.Where(run =>
+                         LuaDistributedWireCodec.CreateRunToken(run.RunId).Equals(envelope.RunToken, StringComparison.OrdinalIgnoreCase)))
+                Plugin.LuaScriptManager.Stop(run.RunId, envelope.Detail, out _);
+        }
+    }
+
+    private static bool IsLocalPlayerSender(string senderName) {
+        if (DalamudApi.PlayerState.ContentId == 0)
+            return false;
+
+        var localName = FormationCharacterName.FormatPlayerNameWorld(
+            DalamudApi.PlayerState.CharacterName,
+            DalamudApi.PlayerState.HomeWorld.ValueNullable?.Name.ToString());
+        return FormationCharacterName.MatchScore(senderName, localName) >= int.MaxValue - 1;
+    }
+
+    private bool IsTrustedLuaConductor(string senderName, out string reason) {
+        if (IsLocalPlayerSender(senderName)) {
+            reason = string.Empty;
+            return true;
+        }
+
+        return LuaConductorTrustPolicy.IsTrusted(
+            senderName,
+            FormationCharacterName.FormatPlayerNameWorld(
+                DalamudApi.PlayerState.CharacterName,
+                DalamudApi.PlayerState.HomeWorld.ValueNullable?.Name.ToString()),
+            Plugin.Config.LuaConductorTrustMode,
+            Plugin.Config.LuaTrustedConductors,
+            out reason);
+    }
+
     /// <summary>
     /// Handles live-variable control messages outside the action queues. This is essential
     /// when the queue being controlled is already occupied by a long-running macro.
@@ -289,7 +446,7 @@ internal class ChatWatcher : IDisposable {
                 StringComparison.OrdinalIgnoreCase));
     }
 
-    private static string GetSenderName(IChatMessage message) {
+    internal static string GetSenderName(IChatMessage message) {
         var senderName = GetPlayerPayloadSenderName(message.Sender);
         if (!string.IsNullOrWhiteSpace(senderName))
             return senderName;
@@ -325,7 +482,7 @@ internal class ChatWatcher : IDisposable {
             : FormationCharacterName.NormalizeWorldSeparator(SanitizeSenderName(ResolveTextWithIcons(sender)));
     }
 
-    private static string ResolveTextWithIcons(SeString seString) {
+    internal static string ResolveTextWithIcons(SeString seString) {
         var sb = new System.Text.StringBuilder();
         foreach (var payload in seString.Payloads) {
             if (payload is TextPayload textPayload) {

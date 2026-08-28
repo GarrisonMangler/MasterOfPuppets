@@ -67,4 +67,25 @@ public static class FormationCharacterName {
         var atIndex = fullName.LastIndexOf('@');
         return atIndex >= 0 ? fullName[..atIndex].Trim() : fullName.Trim();
     }
+
+    public static bool Matches(string left, string right) {
+        if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right))
+            return false;
+
+        left = NormalizeWorldSeparator(left);
+        right = NormalizeWorldSeparator(right);
+
+        if (string.Equals(left, right, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var leftHasWorld = left.Contains('@');
+        var rightHasWorld = right.Contains('@');
+
+        if (leftHasWorld && rightHasWorld)
+            return false;
+
+        var leftBase = GetBaseCharacterName(left);
+        var rightBase = GetBaseCharacterName(right);
+        return string.Equals(leftBase, rightBase, StringComparison.OrdinalIgnoreCase);
+    }
 }

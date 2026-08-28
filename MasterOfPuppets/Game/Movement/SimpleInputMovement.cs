@@ -71,7 +71,10 @@ public sealed class SimpleInputMovement : IDisposable {
         float stuckTolerance = 0.05f,
         int stuckTimeoutMs = 500,
         string? trackingKey = null,
-        bool useFormationRelativeMovement = false) {
+        bool useFormationRelativeMovement = false,
+        bool usePursuitTarget = false,
+        bool allowHoldWhileTargetMoving = true,
+        bool rateLimitTravelFacing = false) {
         if (!DalamudApi.Framework.IsInFrameworkUpdateThread) {
             _ = DalamudApi.Framework.RunOnFrameworkThread(() => MoveTo(
                 destination,
@@ -82,7 +85,10 @@ public sealed class SimpleInputMovement : IDisposable {
                 stuckTolerance,
                 stuckTimeoutMs,
                 trackingKey,
-                useFormationRelativeMovement));
+                useFormationRelativeMovement,
+                usePursuitTarget,
+                allowHoldWhileTargetMoving,
+                rateLimitTravelFacing));
             return null;
         }
 
@@ -94,7 +100,13 @@ public sealed class SimpleInputMovement : IDisposable {
             && _activeMovementMode == SimpleMovementMode.Natural
             && _cts is { IsCancellationRequested: false } activeCts
             && string.Equals(_activeTrackingKey, trackingKey, StringComparison.Ordinal)) {
-            _formationNatural.UpdateTarget(destination, faceDirection, useFormationRelativeMovement);
+            _formationNatural.UpdateTarget(
+                destination,
+                faceDirection,
+                useFormationRelativeMovement,
+                usePursuitTarget,
+                allowHoldWhileTargetMoving,
+                rateLimitTravelFacing);
             return activeCts;
         }
 
@@ -121,7 +133,10 @@ public sealed class SimpleInputMovement : IDisposable {
             destination,
             precision,
             faceDirection,
-            useFormationRelativeMovement);
+            useFormationRelativeMovement,
+            usePursuitTarget,
+            allowHoldWhileTargetMoving,
+            rateLimitTravelFacing);
         var strategy = SelectStrategy(movementMode);
         strategy.Start(context);
         _activeStrategy = strategy;

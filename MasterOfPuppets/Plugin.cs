@@ -9,6 +9,8 @@ using Dalamud.Plugin.Services;
 using MasterOfPuppets.Camera;
 using MasterOfPuppets.Formations;
 using MasterOfPuppets.Ipc;
+using MasterOfPuppets.LuaScripting;
+using MasterOfPuppets.LuaScripting.Synchronization;
 using MasterOfPuppets.Movement;
 using MasterOfPuppets.Resources;
 using MasterOfPuppets.Util.ImGuiExt.AutoComplete;
@@ -16,6 +18,8 @@ using MasterOfPuppets.Util.ImGuiExt.AutoComplete;
 namespace MasterOfPuppets;
 
 public class Plugin : IDalamudPlugin {
+    private readonly LuaFrameworkUpdateCadence _luaFrameworkUpdateCadence = new();
+
     internal static string Name => "Master Of Puppets";
 
     internal Configuration Config { get; }
@@ -33,6 +37,7 @@ public class Plugin : IDalamudPlugin {
     internal FollowPath FollowPath { get; }
     internal SimpleInputMovement SimpleInputMovement { get; }
     internal FormationTrackingSession FormationTrackingSession { get; }
+    internal LuaScriptManager LuaScriptManager { get; }
     internal MultiboxManager MultiboxManager { get; }
     internal GameRenderManager GameRenderManager { get; }
     internal GameWindowManager GameWindowManager { get; }
@@ -44,6 +49,17 @@ public class Plugin : IDalamudPlugin {
         pluginInterface.Create<DalamudApi>();
         Config = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Config.Initialize(DalamudApi.PluginInterface);
+        if (LuaScriptCatalog.EnsureDefaults(Config)) {
+            try {
+                Config.Save();
+            } catch (Exception ex) {
+                // Dalamud's reliable-storage database can remain locked for a
+                // moment during a dev-plugin hot reload. Defaults already exist
+                // in memory, so a transient persistence failure must not abort
+                // the entire plugin load.
+                DalamudApi.PluginLog.Warning(ex, "Could not persist newly packaged Lua scripts during startup");
+            }
+        }
         GameCameraManager.Initialize();
 
         Ui = new PluginUi(this);
@@ -68,6 +84,7 @@ public class Plugin : IDalamudPlugin {
         MovementManager = new MovementManager(FollowPath);
         SimpleInputMovement = new SimpleInputMovement();
         FormationTrackingSession = new FormationTrackingSession(this);
+        LuaScriptManager = new LuaScriptManager(this);
         MultiboxManager = new MultiboxManager(this);
         GameRenderManager = new GameRenderManager(this);
         GameWindowManager = new GameWindowManager(this);
@@ -81,6 +98,7 @@ public class Plugin : IDalamudPlugin {
 
         DalamudApi.ClientState.Login += OnLogin;
         DalamudApi.ClientState.Logout += OnLogout;
+        DalamudApi.ClientState.TerritoryChanged += OnTerritoryChanged;
         DalamudApi.PluginInterface.UiBuilder.Draw += Ui.Draw;
         DalamudApi.PluginInterface.UiBuilder.OpenConfigUi += Ui.SettingsWindow.Toggle;
         DalamudApi.PluginInterface.UiBuilder.OpenMainUi += Ui.MainWindow.Toggle;
@@ -101,6 +119,12 @@ public class Plugin : IDalamudPlugin {
         FollowPath.Update(framework);
         MovementManager.Update();
         FormationTrackingSession.Update();
+        LuaScriptManager.Update();
+        var nowMs = Environment.TickCount64;
+        if (_luaFrameworkUpdateCadence.ShouldUpdateLaunches(nowMs))
+            ChatWatcher.LuaDistributedLaunches.Update();
+        if (_luaFrameworkUpdateCadence.ShouldTickSessions(nowMs))
+            ChatWatcher.LuaDistributedSessions.Tick(DateTimeOffset.UtcNow);
         KeyboardBroadcastManager.Update();
         IpcProvider.UpdateCharacterDataHeartbeat();
 
@@ -120,6 +144,11 @@ public class Plugin : IDalamudPlugin {
     }
 
     internal void StopAllMovementLocal() {
+        LuaScriptManager.StopLocal();
+        StopNonLuaMovementLocal();
+    }
+
+    internal void StopNonLuaMovementLocal() {
         FormationTrackingSession.Stop();
         SimpleInputMovement.StopMove();
         MovementManager.StopMove();
@@ -151,7 +180,16 @@ public class Plugin : IDalamudPlugin {
     }
 
     private void OnLogout(int type, int code) {
+        LuaScriptManager.CancelForHostTransition("logged out or changed character");
+        ChatWatcher.LuaDistributedLaunches.CancelAll("logged out or changed character");
+        ChatWatcher.LuaDistributedSessions.StopAll("logged out or changed character");
         Ui.MainWindow.IsOpen = false;
+    }
+
+    private void OnTerritoryChanged(uint territoryId) {
+        LuaScriptManager.CancelForHostTransition($"territory changed to {territoryId}");
+        ChatWatcher.LuaDistributedLaunches.CancelAll($"territory changed to {territoryId}");
+        ChatWatcher.LuaDistributedSessions.StopAll($"territory changed to {territoryId}");
     }
 
     internal void ReloadConfigFromDisk() {
@@ -175,6 +213,7 @@ public class Plugin : IDalamudPlugin {
         DalamudApi.PluginInterface.UiBuilder.Draw -= Ui.Draw;
         DalamudApi.ClientState.Logout -= OnLogout;
         DalamudApi.ClientState.Login -= OnLogin;
+        DalamudApi.ClientState.TerritoryChanged -= OnTerritoryChanged;
         DalamudApi.PluginInterface.LanguageChanged -= OnLanguageChange;
         DalamudApi.Framework.Update -= OnFrameworkUpdate;
         GameCameraManager.Dispose();
@@ -186,6 +225,7 @@ public class Plugin : IDalamudPlugin {
         PluginCommandManager.Dispose();
         MovementManager.Dispose();
         FollowPath.Dispose();
+        LuaScriptManager.Dispose();
         FormationTrackingSession.Stop();
         SimpleInputMovement.Dispose();
         KeyboardBroadcastManager.Dispose();

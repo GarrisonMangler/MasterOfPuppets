@@ -165,7 +165,7 @@ public class Command {
                 foreach (var (key, value) in variables) {
                     resolved = Regex.Replace(
                         resolved,
-                        $@"\${Regex.Escape(key)}\b",
+                        $@"(?<!\\)\${Regex.Escape(key)}\b",
                         value
                     );
                 }
@@ -173,6 +173,16 @@ public class Command {
                 if (string.Equals(resolved, prev, StringComparison.Ordinal))
                     break;
             }
+
+            // A backslash protects a variable reference from expansion so a macro
+            // can emit variable-bearing commands for a later execution. For example,
+            // -var=\$firework="$firework" preserves the assignment key while resolving
+            // the value for a self-restarting macro.
+            resolved = Regex.Replace(
+                resolved,
+                @"\\(\$[A-Za-z_]\w*)",
+                "$1"
+            );
 
             result.Add(resolved);
         }

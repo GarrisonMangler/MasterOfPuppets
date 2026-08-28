@@ -230,6 +230,52 @@ public class MacroTests
     }
 
     [Fact]
+    public void Escaped_Variable_Remains_Literal_While_Unescaped_Value_Is_Substituted()
+    {
+        var macro = new Macro
+        {
+            Variables = "$firework=\"Heavenscracker\"",
+            Commands = new List<Command> {
+                new Command {
+                    Cids = new() { 1 },
+                    Actions = "/cwl2 moprun \"Goodies: Firework\" -var=\\$firework=\"$firework\""
+                }
+            }
+        };
+
+        var result = macro.GetCidActions(
+            1,
+            inlineVars: new Dictionary<string, string> { ["firework"] = "Bombard Bloom" });
+
+        Assert.Equal(
+            new[] { "/cwl2 moprun \"Goodies: Firework\" -var=$firework=\"Bombard Bloom\"" },
+            result);
+    }
+
+    [Fact]
+    public void Escaped_Variable_Can_Be_Parsed_As_An_Inline_Override_After_Substitution()
+    {
+        var macro = new Macro
+        {
+            Variables = "$firework=\"Heavenscracker\"",
+            Commands = new List<Command> {
+                new Command {
+                    Cids = new() { 1 },
+                    Actions = "/cwl2 moprun \"Goodies: Firework\" -var=\\$firework=\"$firework\""
+                }
+            }
+        };
+
+        var command = Assert.Single(macro.GetCidActions(1));
+        var flags = Assert.Single(
+            ArgumentParser.ParseCommandArgs(command[6..]),
+            token => token.StartsWith("-var="));
+        var variables = ArgumentParser.ParseInlineVars(flags);
+
+        Assert.Equal("Heavenscracker", variables["firework"]);
+    }
+
+    [Fact]
     public void Macro_Import_String_Deserializes_Correctly()
     {
         string b64 = "H4sIAAAAAAAC/3WVTW/bMAyG7/0VgtDDBhQZJZGiNGwDigIbctlpWPfhHrzEKQzEduE63aHof5/kxEiBUclFrx5Sfkkb1POFUvpr3TX6vdI37bjZN+qNs2/V9WEa9FWm3+r7x0R/p7VaYmaS1Odh7OqpHXqd9N0cfjPshzHFPx8jfqQlrOwp/ueswkn9mpU7qdukzAqSeJkPWm+Gfr3NIbP8Xo9t/WffZC/6crc8WH1U1WLcrGg2X+mqvxzrbXt4TBhWTPpkrevqfnuu5uhxrurVbv6ZAAYxBkIybMGaq/+Rd55DxCAiQxg9y1megKiA2GDpWQk6EYUA3loRRSYwXkIcozceJITR+eAlhwzIzmAsIXSiQyZyNkh1sU1VeZSy2DtChMKBznCUzRt2zkmdZ2NSF6mAKL9NGXkTnCllMUcZoQewJRvBFhCSj+KBnL5Fb4OMnDcAMrLpvZSyKIRYQjG6AorIpmQDqIAgpYklO2BHTKUPIMqdDzZ657CEUK4ruOQP5SxEpkAl5FG2gYTWip2PwJ7kHmYUAIvImxKKhorI+SLyJYcMBsoOzYncLSH6yzgcHtbHWXnevd7kSTwP5nfd8NDu1FSP981U9RnnrW54asZmnyb2UzMNCtJ/GdCV/jB9yhN7if1bt1O+Fqo+q6bftrvjUp2HfvXqBqi0no285Cvo4uUfq90WzdIGAAA=";

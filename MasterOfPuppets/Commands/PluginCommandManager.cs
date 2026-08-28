@@ -9,6 +9,7 @@ using Dalamud.Interface.ImGuiNotification;
 
 using MasterOfPuppets.Camera;
 using MasterOfPuppets.Formations;
+using MasterOfPuppets.LuaScripting;
 using MasterOfPuppets.Movement;
 using MasterOfPuppets.Util;
 
@@ -109,6 +110,9 @@ public class PluginCommandManager : IDisposable {
         if (parsedArgs.Count == 1 && parsedArgs[0].StartsWith("gamemacro ", StringComparison.OrdinalIgnoreCase)) {
             parsedArgs = ArgumentParser.ParseMacroArgs(parsedArgs[0]);
         }
+        if (parsedArgs.Count == 1 && parsedArgs[0].StartsWith("lua ", StringComparison.OrdinalIgnoreCase)) {
+            parsedArgs = ArgumentParser.ParseMacroArgs(parsedArgs[0]);
+        }
 
         if (parsedArgs.Any()) {
             var subcommand = parsedArgs[0];
@@ -151,6 +155,73 @@ public class PluginCommandManager : IDisposable {
                 case "stopmove":
                     Plugin.StopAllMovementLocal();
                     break;
+                case "lua": {
+                        var luaAction = parsedArgs.Count >= 2 ? parsedArgs[1] : "status";
+                        switch (luaAction.ToLowerInvariant()) {
+                            case "run": {
+                                    if (parsedArgs.Count < 3) {
+                                        DalamudApi.ChatGui.PrintError(
+                                            "Invalid arguments. Usage: /mop lua run \"script name\" [-var=$name=value;...]");
+                                        break;
+                                    }
+
+                                    var inlineVars = parsedArgs.Count > 3
+                                        ? ArgumentParser.ParseInlineVars(parsedArgs[3])
+                                        : null;
+                                    Plugin.IpcProvider.StartLuaScript(parsedArgs[2], inlineVars);
+                                }
+                                break;
+                            case "sync": {
+                                    if (parsedArgs.Count < 3) {
+                                        DalamudApi.ChatGui.PrintError(
+                                            "Invalid arguments. Usage: /mop lua sync \"script name\" [-var=$name=value;...]");
+                                        break;
+                                    }
+
+                                    var inlineVars = parsedArgs.Count > 3
+                                        ? ArgumentParser.ParseInlineVars(parsedArgs[3])
+                                        : null;
+                                    Plugin.IpcProvider.StartChatSyncedLuaScript(parsedArgs[2], inlineVars);
+                                }
+                                break;
+                            case "stop":
+                                Plugin.IpcProvider.StopLuaScript(parsedArgs.Count > 2 ? parsedArgs[2] : null);
+                                break;
+                            case "pause":
+                                Plugin.IpcProvider.PauseLuaScript(parsedArgs.Count > 2 ? parsedArgs[2] : null);
+                                break;
+                            case "resume":
+                                Plugin.IpcProvider.ResumeLuaScript(parsedArgs.Count > 2 ? parsedArgs[2] : null);
+                                break;
+                            case "restart": {
+                                    var selector = parsedArgs.Count > 2 ? parsedArgs[2] : null;
+                                    if (!Plugin.LuaScriptManager.TryResolveScriptName(selector, out var scriptName)
+                                        && (string.IsNullOrWhiteSpace(selector)
+                                            || LuaScriptCatalog.Find(Plugin.Config, selector) == null)) {
+                                        DalamudApi.ChatGui.PrintError(
+                                            string.IsNullOrWhiteSpace(selector)
+                                                ? "No Lua run is available to restart."
+                                                : $"No Lua run or configured script matches '{selector}'.");
+                                        break;
+                                    }
+
+                                    Plugin.IpcProvider.StopLuaScript(selector);
+                                    Plugin.IpcProvider.StartLuaScript(scriptName);
+                                }
+                                break;
+                            case "status":
+                                DalamudApi.ChatGui.Print(
+                                    $"Lua: {Plugin.LuaScriptManager.GetStatusText(parsedArgs.Count > 2 ? parsedArgs[2] : null)}");
+                                break;
+                            default:
+                                DalamudApi.ChatGui.PrintError(
+                                    "Invalid arguments. Usage: /mop lua <sync \"script\"|run \"script\"|pause [run|script]|resume [run|script]|stop [run|script]|restart [run|script]|status [run|script]>");
+                                break;
+                        }
+                    }
+                    break;
+                case "reload":
+                case "loadconfig":
                 case "reloadconfig":
                     Plugin.ReloadConfigFromDisk();
                     break;
@@ -194,7 +265,16 @@ public class PluginCommandManager : IDisposable {
                     Plugin.IpcProvider.ExecuteTargetClear();
                     break;
                 case "macro":
+                case "macros":
                     Plugin.Ui.MacroWindow.Toggle();
+                    break;
+                case "script":
+                case "scripts":
+                    if (parsedArgs.Count < 2) {
+                        Plugin.Ui.LuaScriptsWindow.Toggle();
+                    } else {
+                        goto case "lua";
+                    }
                     break;
                 case "queue":
                     Plugin.Ui.MacroQueueWindow.Toggle();

@@ -12,6 +12,7 @@ using Dalamud.Interface.Windowing;
 using MasterOfPuppets.Camera;
 using MasterOfPuppets.Extensions;
 using MasterOfPuppets.Extensions.Dalamud;
+using MasterOfPuppets.LuaScripting.Synchronization;
 using MasterOfPuppets.Resources;
 using MasterOfPuppets.Util;
 using MasterOfPuppets.Util.ImGuiExt;
@@ -21,6 +22,7 @@ namespace MasterOfPuppets;
 public class SettingsWindow : Window {
     private Plugin Plugin { get; }
     private string _characterName = string.Empty;
+    private string _luaConductorName = string.Empty;
     private float _cameraYOffset = GameCameraManager.MaxYOffset;
     // commandKey → { defaultAlias → current input text }
     private readonly Dictionary<string, Dictionary<string, string>> _aliasInputs = new();
@@ -497,6 +499,78 @@ public class SettingsWindow : Window {
                     ImGuiUtil.ToolTip(Language.DeleteInstructionTooltip);
                 }
                 ImGui.EndListBox();
+            }
+            ImGui.Unindent();
+        }
+
+        ImGui.Spacing();
+        if (ImGui.CollapsingHeader("Trusted Lua Conductors", ImGuiTreeNodeFlags.DefaultOpen)) {
+            ImGui.Indent();
+            var mode = LuaConductorTrustModes.Normalize(Plugin.Config.LuaConductorTrustMode);
+            if (ImGui.BeginCombo("Lua conductor policy", mode == LuaConductorTrustModes.SelfOnly ? "Self only" : "Explicit allowlist")) {
+                if (ImGui.Selectable("Self only", mode == LuaConductorTrustModes.SelfOnly)) {
+                    Plugin.Config.LuaConductorTrustMode = LuaConductorTrustModes.SelfOnly;
+                    Plugin.IpcProvider.SyncConfiguration();
+                }
+                if (ImGui.Selectable("Explicit allowlist", mode == LuaConductorTrustModes.Allowlist)) {
+                    Plugin.Config.LuaConductorTrustMode = LuaConductorTrustModes.Allowlist;
+                    Plugin.IpcProvider.SyncConfiguration();
+                }
+                ImGui.EndCombo();
+            }
+            ImGui.TextWrapped("Self only is the secure default. Cross-PC Lua runs and stops are accepted only from exact name@world entries when allowlist mode is enabled.");
+
+            if (mode == LuaConductorTrustModes.Allowlist) {
+                ImGui.SetNextItemWidth(MathF.Max(160f, ImGui.GetContentRegionAvail().X - 90f * ImGuiHelpers.GlobalScale));
+                ImGui.InputTextWithHint("##LuaConductorName", "Character Name@World", ref _luaConductorName, 255);
+                ImGui.SameLine();
+                if (ImGui.Button("Add##LuaConductor") && !string.IsNullOrWhiteSpace(_luaConductorName)) {
+                    Plugin.Config.LuaTrustedConductors.AddUnique(_luaConductorName.Trim());
+                    _luaConductorName = string.Empty;
+                    Plugin.IpcProvider.SyncConfiguration();
+                }
+                foreach (var conductor in Plugin.Config.LuaTrustedConductors.ToList()) {
+                    if (ImGui.Selectable($"{conductor}##LuaConductorEntry", false) && ImGui.GetIO().KeyCtrl) {
+                        Plugin.Config.LuaTrustedConductors.Remove(conductor);
+                        Plugin.IpcProvider.SyncConfiguration();
+                    }
+                    ImGuiUtil.ToolTip(Language.DeleteInstructionTooltip);
+                }
+            }
+
+            ImGui.Spacing();
+            var readinessEnabled = Plugin.Config.LuaDistributedReadinessEnabled;
+            if (ImGui.Checkbox("Experimental PREPARE / READY / GO staging", ref readinessEnabled)) {
+                Plugin.Config.LuaDistributedReadinessEnabled = readinessEnabled;
+                Plugin.IpcProvider.SyncConfiguration();
+            }
+            ImGui.TextWrapped("When enabled, Chat Sync Lua performers first move to their participant-formation slots, report settled readiness, and wait for a conductor GO epoch. Keep disabled until every participating PC runs this build and the formation/anchor is visible.");
+            if (readinessEnabled) {
+                var timeout = Math.Clamp(Plugin.Config.LuaReadinessTimeoutSeconds, 5, 120);
+                ImGui.SetNextItemWidth(160f * ImGuiHelpers.GlobalScale);
+                if (ImGui.InputInt("Readiness timeout (seconds)", ref timeout)) {
+                    Plugin.Config.LuaReadinessTimeoutSeconds = Math.Clamp(timeout, 5, 120);
+                    Plugin.IpcProvider.SyncConfiguration();
+                }
+                var policy = Plugin.Config.LuaReadinessTimeoutPolicy?.Trim().ToLowerInvariant() ?? "abort";
+                var policyLabel = policy switch {
+                    "continue_ready" => "Continue ready performers",
+                    "continue_all" => "Continue all performers",
+                    _ => "Abort",
+                };
+                if (ImGui.BeginCombo("Readiness timeout policy", policyLabel)) {
+                    foreach (var option in new[] {
+                                 (Value: "abort", Label: "Abort"),
+                                 (Value: "continue_ready", Label: "Continue ready performers"),
+                                 (Value: "continue_all", Label: "Continue all performers"),
+                             }) {
+                        if (ImGui.Selectable(option.Label, policy == option.Value)) {
+                            Plugin.Config.LuaReadinessTimeoutPolicy = option.Value;
+                            Plugin.IpcProvider.SyncConfiguration();
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
             }
             ImGui.Unindent();
         }

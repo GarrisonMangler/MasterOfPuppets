@@ -10,6 +10,7 @@
 *.userosscache
 *.sln.docstates
 *.ps1
+!tools/Build-HotReload.ps1
 __ignore*/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
