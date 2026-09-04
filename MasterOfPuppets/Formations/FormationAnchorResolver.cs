@@ -59,21 +59,23 @@ public static class FormationAnchorResolver {
 
                 resolved = resolved with { ContentId = ResolveContentIdFromName(plugin, resolved.Name) };
                 return true;
-            case FormationAnchorKind.Target:
-                if (player.TargetObject == null) {
+            case FormationAnchorKind.Target: {
+                var target = DalamudApi.TargetManager.Target ?? player.TargetObject;
+                if (target == null) {
                     failureReason = "no target selected";
                     failureKind = FormationAnchorFailureKind.NoTargetSelected;
                     return false;
                 }
 
                 resolved = new FormationResolvedAnchor(
-                    player.TargetObject.Position,
-                    player.TargetObject.Rotation,
+                    target.Position,
+                    target.Rotation,
                     null,
-                    player.TargetObject.Name.TextValue,
-                    player.TargetObject.GameObjectId,
-                    player.TargetObject);
+                    target.Name.TextValue,
+                    target.GameObjectId,
+                    target);
                 return true;
+            }
             case FormationAnchorKind.FocusTarget:
                 var focusTarget = DalamudApi.TargetManager.FocusTarget;
                 if (focusTarget == null) {
@@ -93,19 +95,20 @@ public static class FormationAnchorResolver {
             case FormationAnchorKind.Named:
                 if (string.Equals(anchor.Name, "<t>", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(anchor.Name, "[t]", StringComparison.OrdinalIgnoreCase)) {
-                    if (player.TargetObject == null) {
+                    var namedTarget = DalamudApi.TargetManager.Target ?? player.TargetObject;
+                    if (namedTarget == null) {
                         failureReason = "no target selected";
                         failureKind = FormationAnchorFailureKind.NoTargetSelected;
                         return false;
                     }
 
                     resolved = new FormationResolvedAnchor(
-                        player.TargetObject.Position,
-                        player.TargetObject.Rotation,
+                        namedTarget.Position,
+                        namedTarget.Rotation,
                         null,
-                        player.TargetObject.Name.TextValue,
-                        player.TargetObject.GameObjectId,
-                        player.TargetObject);
+                        namedTarget.Name.TextValue,
+                        namedTarget.GameObjectId,
+                        namedTarget);
                     return true;
                 }
 

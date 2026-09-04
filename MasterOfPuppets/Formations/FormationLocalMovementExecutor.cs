@@ -51,18 +51,26 @@ public static class FormationLocalMovementExecutor {
             anchorPointIndex,
             resolvedAnchor.Rotation,
             normalizeAnchorRotation);
+        var anchorPosition = IsExternalOriginAnchor(anchor, resolvedAnchor.ContentId)
+            ? FormationPointMovement.AdjustExternalOriginPosition(
+                formation,
+                anchorPointIndex,
+                resolvedAnchor.Position,
+                anchorRotation)
+            : resolvedAnchor.Position;
 
         return ExecuteAnchoredMove(
             plugin,
             formation,
             destinationPointIndex,
             anchorPointIndex,
-            resolvedAnchor.Position,
+            anchorPosition,
             anchorRotation,
             movementMode,
             logPrefix,
             resolvedAnchor,
-            normalizeAnchorRotation);
+            normalizeAnchorRotation,
+            IsExternalOriginAnchor(anchor, resolvedAnchor.ContentId));
     }
 
     public static bool ShouldSkipLocalAnchor(
@@ -91,8 +99,6 @@ public static class FormationLocalMovementExecutor {
         }
 
         if (!FormationAnchorResolver.TryResolve(plugin, formation, anchor, out var resolvedAnchor, out var anchorFailure, out var failureKind)) {
-            // Chat-sync target fallback must stay anchored on the chat sender/leader. Using
-            // FormationAnchorReference.Self here would make every receiving client its own origin.
             if (FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(formation, anchor.Kind)
                 && fallbackAnchor != null
                 && FormationAnchorResolver.TryResolve(plugin, formation, fallbackAnchor, out var fallbackResolved, out _, out _)) {
@@ -125,17 +131,69 @@ public static class FormationLocalMovementExecutor {
             anchorPointIndex,
             resolvedAnchor.Rotation,
             ShouldNormalizeAssignedAnchorRotation(anchor, resolvedAnchor.ContentId, localCid, assignedAnchorPointIndex));
+        var anchorPosition = IsExternalOriginAnchor(anchor, resolvedAnchor.ContentId)
+            ? FormationPointMovement.AdjustExternalOriginPosition(
+                formation,
+                anchorPointIndex,
+                resolvedAnchor.Position,
+                anchorRotation)
+            : resolvedAnchor.Position;
         return ExecuteAnchoredMove(
             plugin,
             formation,
             destinationPointIndex,
             anchorPointIndex,
-            resolvedAnchor.Position,
+            anchorPosition,
             anchorRotation,
             movementMode,
             logPrefix,
             resolvedAnchor,
-            ShouldNormalizeAssignedAnchorRotation(anchor, resolvedAnchor.ContentId, localCid, assignedAnchorPointIndex));
+            ShouldNormalizeAssignedAnchorRotation(anchor, resolvedAnchor.ContentId, localCid, assignedAnchorPointIndex),
+            IsExternalOriginAnchor(anchor, resolvedAnchor.ContentId));
+    }
+
+    public static bool ExecuteChatSyncedFormationSnapshot(
+        Plugin plugin,
+        string formationName,
+        FormationResolvedAnchor resolvedAnchor,
+        SimpleMovementMode movementMode,
+        string eligibleMemberBits) {
+        const string logPrefix = "mopformation";
+        if (!TryGetFormation(plugin, formationName, logPrefix, out var formation))
+            return false;
+
+        var localCid = DalamudApi.PlayerState.ContentId;
+        var destinationPointIndex = FormationExecution.GetAssignedPointIndex(formation, localCid, plugin.Config.CidsGroups);
+        if (destinationPointIndex < 0)
+            return false;
+        if (!FormationChatSyncCodec.IsEligibleMember(
+                formation,
+                plugin.Config.CidsGroups,
+                localCid,
+                eligibleMemberBits)) {
+            DalamudApi.PluginLog.Debug(
+                $"[{logPrefix}] local formation member was not visible to the command issuer; ignoring snapshot");
+            return false;
+        }
+
+        var anchorPointIndex = FormationPointMovement.AnchorPointIndex;
+        var anchorPosition = FormationPointMovement.AdjustExternalOriginPosition(
+            formation,
+            anchorPointIndex,
+            resolvedAnchor.Position,
+            resolvedAnchor.Rotation);
+        return ExecuteAnchoredMove(
+            plugin,
+            formation,
+            destinationPointIndex,
+            anchorPointIndex,
+            anchorPosition,
+            resolvedAnchor.Rotation,
+            movementMode,
+            logPrefix,
+            resolvedAnchor,
+            false,
+            true);
     }
 
     public static int ResolveAnchorPointIndex(
@@ -150,9 +208,12 @@ public static class FormationLocalMovementExecutor {
             || anchor.Kind == FormationAnchorKind.Default)
             return FormationPointMovement.AnchorPointIndex;
 
-        // A raw-empty point 1 is the dynamic origin/leader slot (0, 0, 0).
-        if (FormationAnchorRules.IsPointOneUnassigned(formation))
+        // If Point 1 has no assigned characters, Point 1 is the dynamic origin/leader slot (0, 0, 0).
+        if (formation.Points.Count > 0
+            && (formation.Points[0].Cids == null || formation.Points[0].Cids.Count == 0)
+            && (formation.Points[0].GroupIds == null || formation.Points[0].GroupIds.Count == 0)) {
             return FormationPointMovement.AnchorPointIndex;
+        }
 
         if (!anchorCid.HasValue)
             return FormationPointMovement.AnchorPointIndex;
@@ -182,6 +243,9 @@ public static class FormationLocalMovementExecutor {
         && anchorCid.Value != localCid
         && assignedAnchorPointIndex >= 0;
 
+    private static bool IsExternalOriginAnchor(FormationAnchorReference anchor, ulong? anchorCid) =>
+        anchor.Kind != FormationAnchorKind.Self && !anchorCid.HasValue;
+
     public static bool ExecuteAnchoredMove(
         Plugin plugin,
         Formation formation,
@@ -192,7 +256,8 @@ public static class FormationLocalMovementExecutor {
         SimpleMovementMode movementMode,
         string logPrefix,
         FormationResolvedAnchor? resolvedAnchor = null,
-        bool normalizeAnchorRotation = false) {
+        bool normalizeAnchorRotation = false,
+        bool externalOrigin = false) {
         var move = FormationPointMovement.BuildAnchoredWorldMove(
             formation,
             destinationPointIndex,
@@ -206,6 +271,9 @@ public static class FormationLocalMovementExecutor {
 
         var trackingKey = $"{logPrefix}:{formation.Name}:{anchorPointIndex}:{destinationPointIndex}";
         if (SimpleInputMovement.UsesLiveFormationTracking(movementMode) && resolvedAnchor != null) {
+            var trackingAnchorPosition = externalOrigin
+                ? resolvedAnchor.Position
+                : anchorWorldPosition;
             plugin.FormationTrackingSession.Start(
                 formation,
                 destinationPointIndex,
@@ -213,11 +281,12 @@ public static class FormationLocalMovementExecutor {
                 resolvedAnchor.ContentId,
                 resolvedAnchor.GameObjectId,
                 resolvedAnchor.Name,
-                resolvedAnchor.Position,
+                trackingAnchorPosition,
                 anchorWorldRotation,
                 resolvedAnchor.Rotation,
                 normalizeAnchorRotation,
-                trackingKey);
+                trackingKey,
+                externalOrigin);
         } else {
             plugin.FormationTrackingSession.Stop();
             MoveToComputed(
@@ -298,8 +367,11 @@ public static class FormationLocalMovementExecutor {
         }
 
         if (!FormationAnchorResolver.TryResolve(plugin, formation, anchor, out var resolvedAnchor, out var anchorFailure, out var failureKind)) {
-            if (fallbackAnchor != null && FormationAnchorResolver.TryResolve(plugin, formation, fallbackAnchor, out var fallbackResolved, out _, out _)) {
+            if (FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(formation, anchor.Kind)
+                && fallbackAnchor != null
+                && FormationAnchorResolver.TryResolve(plugin, formation, fallbackAnchor, out var fallbackResolved, out _, out _)) {
                 resolvedAnchor = fallbackResolved;
+                anchor = fallbackAnchor;
             } else {
                 LogAnchorFailure(logPrefix, anchorFailure, failureKind);
                 return false;
@@ -307,9 +379,7 @@ public static class FormationLocalMovementExecutor {
         }
 
         var localCid = DalamudApi.PlayerState.ContentId;
-        var isPointOneUnassigned = formation.Points.Count > 0
-            && (formation.Points[0].Cids == null || formation.Points[0].Cids.Count == 0)
-            && (formation.Points[0].GroupIds == null || formation.Points[0].GroupIds.Count == 0);
+        var isPointOneUnassigned = FormationAnchorRules.IsPointOneUnassigned(formation);
         var assignedAnchorPointIndex = (!isPointOneUnassigned && resolvedAnchor.ContentId.HasValue)
             ? FormationExecution.GetAssignedPointIndex(formation, resolvedAnchor.ContentId.Value, plugin.Config.CidsGroups)
             : -1;

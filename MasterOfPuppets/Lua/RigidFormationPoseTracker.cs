@@ -14,6 +14,8 @@ internal sealed class RigidFormationPoseTracker {
     public const float TurningTranslationFraction = 0.78f;
     public const float AboutFaceThresholdRadians = MathF.PI * 5f / 6f;
     public const float RotationErrorThresholdRadians = 0.01f;
+    public const float StationaryLeaderDistanceThreshold = 0.15f;
+    public const float StationaryRotationNoiseThresholdRadians = 0.25f;
     public const float LeaderTurnThresholdRadiansPerSecond = 0.08f;
     public const float TeleportDistance = 25f;
 
@@ -66,8 +68,16 @@ internal sealed class RigidFormationPoseTracker {
         var leaderAngularSpeed = leaderRotationDelta / elapsed;
         var isAboutFace = MathF.Abs(leaderRotationDelta) >= AboutFaceThresholdRadians;
         var rotationError = ShortestAngle(_rotation, leaderRotation);
-        var isTurning = MathF.Abs(leaderAngularSpeed) >= LeaderTurnThresholdRadiansPerSecond
-            || MathF.Abs(rotationError) >= RotationErrorThresholdRadians;
+        // A stationary actor's rotation samples can jitter by a few degrees.
+        // At the outside of a formation that noise becomes a large slot
+        // displacement, so do not turn the shared frame until it accumulates
+        // beyond a small stationary deadband.
+        var leaderIsStationary = leaderDistance < StationaryLeaderDistanceThreshold;
+        var isTurning = MathF.Abs(rotationError) >= (leaderIsStationary
+                ? StationaryRotationNoiseThresholdRadians
+                : RotationErrorThresholdRadians)
+            || (!leaderIsStationary
+                && MathF.Abs(leaderAngularSpeed) >= LeaderTurnThresholdRadiansPerSecond);
 
         _lastLeaderPosition = leaderPosition;
         _lastLeaderRotation = NormalizeAngle(leaderRotation);
@@ -113,7 +123,8 @@ internal sealed class RigidFormationPoseTracker {
             : MathF.Min(MaximumAngularRateRadiansPerSecond, tangentialBudget / formationRadius);
         if (!isTurning)
             angularLimit = MaximumAngularRateRadiansPerSecond;
-        _rotation = StepAngle(_rotation, leaderRotation, angularLimit * elapsed);
+        if (isTurning)
+            _rotation = StepAngle(_rotation, leaderRotation, angularLimit * elapsed);
 
         return new RigidFormationPose(
             _position,

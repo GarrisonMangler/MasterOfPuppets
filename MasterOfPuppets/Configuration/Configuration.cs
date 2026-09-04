@@ -384,6 +384,11 @@ internal class Configuration : IPluginConfiguration {
         Characters.MoveItemToIndex(itemIndex, targetIndex);
         this.Save();
     }
+
+    public void MoveLuaScriptToIndex(int itemIndex, int targetIndex) {
+        LuaScripts.MoveItemToIndex(itemIndex, targetIndex);
+        this.Save();
+    }
 }
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]

@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 
+using MasterOfPuppets.Extensions.Dalamud;
 using MasterOfPuppets.Formations;
 using MasterOfPuppets.Ipc;
 using MasterOfPuppets.LuaScripting.Automation;
 using MasterOfPuppets.LuaScripting.Synchronization;
+using MasterOfPuppets.Movement;
 using MasterOfPuppets.Util;
 
 using Lumina.Text.ReadOnly;
@@ -18,6 +21,8 @@ using Lumina.Text.ReadOnly;
 namespace MasterOfPuppets;
 
 internal class ChatWatcher : IDisposable {
+    private const int MaximumChatBytes = 500;
+
     private Plugin Plugin { get; }
     // private bool _isRegistered;
 
@@ -48,6 +53,7 @@ internal class ChatWatcher : IDisposable {
 
     private readonly Dictionary<string, Action<string[], string>> CommandHandlers;
     private readonly LuaReplayWindow _luaReplayWindow = new();
+    private readonly LuaReplayWindow _formationReplayWindow = new();
     private readonly LuaChatSyncFragmentAssembler _luaFragmentAssembler = new();
     internal LuaDistributedSessionRegistry LuaDistributedSessions { get; } = new();
     internal LuaDistributedLaunchController LuaDistributedLaunches { get; }
@@ -62,7 +68,7 @@ internal class ChatWatcher : IDisposable {
             ["mopbrn"] = HandleBroadcastNotMeCommandExecution,
             ["mopbrc"] = HandleBroadcastCharacterCommandExecution,
             ["mopbrg"] = HandleBroadcastGroupCommandExecution,
-            ["mopformation"] = HandleFormationCommand,
+            [FormationChatSyncCodec.CommandName] = HandleFormationAnchorSnapshot,
             ["mopluarun"] = HandleLuaRun,
             ["mopluavars"] = HandleLuaVariableUpdate,
             [LuaChatSyncFragmentCodec.CommandName] = HandleLuaChunk,
@@ -127,7 +133,9 @@ internal class ChatWatcher : IDisposable {
         DalamudApi.PluginLog.Debug($"OnChatMessage ({senderName} - {message.LogKind}): [{parsedArgs[0]}]: {string.Join("|", parsedArgs.Skip(1))}");
 #endif
 
-        if (CommandHandlers.TryGetValue(parsedArgs[0], out var action)) {
+        if (parsedArgs[0].Equals("mopformation", StringComparison.OrdinalIgnoreCase)) {
+            HandleFormationCommand(parsedArgs.Skip(1).ToArray(), senderName, message.LogKind);
+        } else if (CommandHandlers.TryGetValue(parsedArgs[0], out var action)) {
             action.Invoke(parsedArgs.Skip(1).ToArray(), senderName);
         }
     }
@@ -148,7 +156,10 @@ internal class ChatWatcher : IDisposable {
                 && IpcProvider.TryParseMirrorStopArguments(parsedArgs.Skip(1).ToArray(), out _))
             || (parsedArgs.Count == 6
                 && parsedArgs[0].Equals(LuaChatSyncFragmentCodec.CommandName, StringComparison.OrdinalIgnoreCase)
-                && LuaChatSyncFragmentCodec.TryParseArguments(parsedArgs.Skip(1).ToArray(), out _, out _));
+                && LuaChatSyncFragmentCodec.TryParseArguments(parsedArgs.Skip(1).ToArray(), out _, out _))
+            || (parsedArgs.Count == 2
+                && parsedArgs[0].Equals(FormationChatSyncCodec.CommandName, StringComparison.OrdinalIgnoreCase)
+                && FormationChatSyncCodec.TryDecode(parsedArgs[1], out _));
     }
 
     private void HandleRunMacro(string[] args, string senderName) {
@@ -524,7 +535,7 @@ internal class ChatWatcher : IDisposable {
             ? $"\"{value.Replace("\"", string.Empty, StringComparison.Ordinal)}\""
             : value;
 
-    private void HandleFormationCommand(string[] args, string senderName) {
+    private void HandleFormationCommand(string[] args, string senderName, XivChatType chatType) {
         if (args.Length < 1) {
             DalamudApi.ChatGui.PrintError("Invalid command arguments expected 1 <formation name>");
             return;
@@ -538,6 +549,12 @@ internal class ChatWatcher : IDisposable {
             return;
         }
 
+        if (anchor.Anchor.Kind == FormationAnchorKind.Named
+            && (string.Equals(anchor.Anchor.Name, "<t>", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(anchor.Anchor.Name, "[t]", StringComparison.OrdinalIgnoreCase))) {
+            anchor = anchor with { Anchor = FormationAnchorReference.Target };
+        }
+
         if (anchor.Anchor.Kind == FormationAnchorKind.Sender && string.IsNullOrWhiteSpace(anchor.Anchor.Name)) {
             anchor = anchor with { Anchor = anchor.Anchor with { Name = senderName } };
         }
@@ -548,17 +565,139 @@ internal class ChatWatcher : IDisposable {
             return;
         }
 
-        var fallbackAnchor = string.IsNullOrWhiteSpace(senderName)
-            ? null
-            : FormationAnchorReference.Named(senderName);
+        // A target is client-local in FFXIV chat. The sender publishes one
+        // authoritative transform and the set of formation members visible to it.
+        if (anchor.Anchor.Kind == FormationAnchorKind.Target && IsLocalPlayerSender(senderName)) {
+            var formation = Plugin.Config.Formations.FirstOrDefault(candidate =>
+                string.Equals(candidate.Name, args[0], StringComparison.OrdinalIgnoreCase));
+            if (formation == null) {
+                DalamudApi.PluginLog.Warning($"[mopformation] formation not found: \"{args[0]}\"");
+                return;
+            }
+
+            if (!FormationAnchorResolver.TryResolve(
+                    Plugin,
+                    new Formation(),
+                    anchor.Anchor,
+                    out var resolvedTarget,
+                    out var failureReason,
+                    out var failureKind)) {
+                LogFormationAnchorFailure(failureReason, failureKind);
+                return;
+            }
+
+            var channelPrefix = chatType.ToChatPrefix();
+            if (string.IsNullOrWhiteSpace(channelPrefix))
+                return;
+
+            var eligibleMemberBits = FormationMemberVisibility.CaptureEligibleMemberBits(Plugin, formation);
+            var snapshot = new FormationChatAnchorPayload(
+                FormationChatSyncCodec.CurrentSchemaVersion,
+                Guid.NewGuid().ToString("D"),
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                args[0],
+                DalamudApi.ClientState.TerritoryType,
+                eligibleMemberBits,
+                resolvedTarget.Position.X,
+                resolvedTarget.Position.Y,
+                resolvedTarget.Position.Z,
+                resolvedTarget.Rotation,
+                resolvedTarget.Name,
+                resolvedTarget.GameObjectId ?? 0,
+                SimpleInputMovement.FormatMode(anchor.MovementMode));
+            var payload = FormationChatSyncCodec.Encode(snapshot);
+            var command = $"{channelPrefix} {FormationChatSyncCodec.CommandName} {payload}";
+            if (Encoding.UTF8.GetByteCount(command) > MaximumChatBytes) {
+                DalamudApi.PluginLog.Warning("[mopformation] target snapshot exceeds the game chat limit; executing locally only");
+                FormationLocalMovementExecutor.ExecuteChatSyncedFormationSnapshot(
+                    Plugin,
+                    args[0],
+                    resolvedTarget,
+                    anchor.MovementMode,
+                    eligibleMemberBits);
+                return;
+            }
+
+            try {
+                Chat.SendMessage(command);
+            } catch (Exception ex) {
+                DalamudApi.PluginLog.Error(ex, "[mopformation] failed to send target snapshot");
+                return;
+            }
+
+            // The sender executes immediately after the transport accepts the
+            // authoritative frame. Its own echoed frame is replay-suppressed.
+            _formationReplayWindow.TryAccept(
+                snapshot.MessageId,
+                snapshot.CreatedUnixMilliseconds,
+                DateTimeOffset.UtcNow,
+                out _);
+            FormationLocalMovementExecutor.ExecuteChatSyncedFormationSnapshot(
+                Plugin,
+                args[0],
+                resolvedTarget,
+                anchor.MovementMode,
+                eligibleMemberBits);
+            return;
+        }
+
+        // In an all-current-client group, the original target token is only the
+        // trigger. The following snapshot is the authoritative executable frame.
+        if (anchor.Anchor.Kind == FormationAnchorKind.Target)
+            return;
 
         _ = DalamudApi.Framework.RunOnFrameworkThread(() =>
             FormationLocalMovementExecutor.ExecuteChatSyncedFormation(
                 Plugin,
                 args[0],
                 anchor.Anchor,
-                anchor.MovementMode,
-                fallbackAnchor));
+                anchor.MovementMode));
+    }
+
+    private static void LogFormationAnchorFailure(
+        string failureReason,
+        FormationAnchorFailureKind failureKind) {
+        var message = $"[mopformation] {failureReason}";
+        if (FormationLocalMovementExecutor.IsTransientAnchorFailure(failureKind))
+            DalamudApi.PluginLog.Debug(message);
+        else
+            DalamudApi.PluginLog.Warning(message);
+    }
+
+    private void HandleFormationAnchorSnapshot(string[] args, string senderName) {
+        if (args.Length != 1 || !FormationChatSyncCodec.TryDecode(args[0], out var payload))
+            return;
+
+        if (payload!.TerritoryId != DalamudApi.ClientState.TerritoryType) {
+            DalamudApi.PluginLog.Debug(
+                $"[mopformation] ignored target snapshot for territory {payload.TerritoryId}");
+            return;
+        }
+
+        if (!_formationReplayWindow.TryAccept(
+                payload.MessageId,
+                payload.CreatedUnixMilliseconds,
+                DateTimeOffset.UtcNow,
+                out var replayError)) {
+            DalamudApi.PluginLog.Debug($"[mopformation] rejected target snapshot: {replayError}");
+            return;
+        }
+
+        if (!SimpleInputMovement.TryParseMode(payload.MovementMode, out var movementMode))
+            return;
+
+        _ = DalamudApi.Framework.RunOnFrameworkThread(() =>
+                FormationLocalMovementExecutor.ExecuteChatSyncedFormationSnapshot(
+                    Plugin,
+                    payload.FormationName,
+                    new FormationResolvedAnchor(
+                        new System.Numerics.Vector3(payload.X, payload.Y, payload.Z),
+                        payload.Rotation,
+                        null,
+                        payload.AnchorName,
+                        payload.AnchorGameObjectId == 0 ? null : payload.AnchorGameObjectId),
+                movementMode,
+                payload.EligibleMemberBits));
     }
 
     private static string SanitizeSenderName(string raw) {

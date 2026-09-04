@@ -143,6 +143,8 @@ public static partial class MopCommandsHelper {
                 target == "Name", "$var" == "value", "$var" != ""
                 incombat, outcombat, isperforming, isalive, isdead, isleader, inparty
                 visible "Name", exists "Name"
+                scriptrunning "Script Name", scriptactive "Script Name"
+                macrorunning "Macro Name", macroactive "Macro Name"
             """,
             Notes = """
             Executes a block of actions or a single inline command only if the condition evaluates to true.

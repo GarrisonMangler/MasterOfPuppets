@@ -29,8 +29,6 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
     }
 
     public string Name => "Natural";
-    public bool UsesNativeStopOnCompletion => false;
-
     public void Start(SimpleMovementContext context) {
         _tracker.Reset(context.Destination, Environment.TickCount64);
         _faceDirection = context.FaceDirection;

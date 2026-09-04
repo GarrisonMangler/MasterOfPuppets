@@ -12,6 +12,7 @@ using Dalamud.Interface.Windowing;
 
 using MasterOfPuppets.LuaScripting;
 using MasterOfPuppets.LuaScripting.Runs;
+using MasterOfPuppets.Extensions;
 using MasterOfPuppets.Extensions.Dalamud;
 using MasterOfPuppets.Resources;
 using MasterOfPuppets.Util.ImGuiExt;
@@ -371,6 +372,46 @@ public sealed class LuaScriptsWindow : Window {
             ImGuiUtil.ToolTip(script.Description);
         ImGui.OpenPopupOnItemClick("##LuaScriptContext", ImGuiPopupFlags.MouseButtonRight);
         DrawContextMenu(scriptIndex);
+
+        ImGuiUtil.ToolTip("""
+        Right click for more options
+        Drag to reorder
+        """);
+
+        if (ImGui.BeginDragDropSource()) {
+            unsafe {
+                ImGui.SetDragDropPayload("DND_LUA_SCRIPTS_TABLE", new ReadOnlySpan<byte>(&scriptIndex, sizeof(int)), ImGuiCond.None);
+                ImGui.PushStyleColor(ImGuiCol.Text, script.Color);
+                ImGui.Button($"({scriptIndex + 1}) {script.Name}");
+                ImGui.PopStyleColor();
+            }
+            ImGui.EndDragDropSource();
+        }
+
+        using (ImRaii.PushColor(ImGuiCol.DragDropTarget, Style.Components.DragDropTarget)) {
+            if (ImGui.BeginDragDropTarget()) {
+                ImGuiPayloadPtr dragDropPayload = ImGui.AcceptDragDropPayload("DND_LUA_SCRIPTS_TABLE");
+
+                bool isDropping = false;
+                unsafe {
+                    isDropping = !dragDropPayload.IsNull;
+                }
+
+                if (isDropping && dragDropPayload.IsDelivery()) {
+                    unsafe {
+                        int originalIndex = *(int*)dragDropPayload.Data;
+                        int offset = scriptIndex - originalIndex;
+                        if (offset != 0 && originalIndex + offset >= 0) {
+                            int targetIndex = originalIndex + offset;
+                            _plugin.Config.MoveLuaScriptToIndex(originalIndex, targetIndex);
+                            _plugin.IpcProvider.SyncConfiguration();
+                        }
+                    }
+                }
+
+                ImGui.EndDragDropTarget();
+            }
+        }
 
         ImGui.TableNextColumn();
         if (ImGuiUtil.IconButton(FontAwesomeIcon.Trash, "##DeleteLuaScript", "Delete script")) {

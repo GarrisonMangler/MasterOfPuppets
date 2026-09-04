@@ -30,6 +30,17 @@ public sealed class RigidFormationPoseTrackerTests {
     }
 
     [Fact]
+    public void StationaryRotationNoiseDoesNotMoveTheFormationFrame() {
+        var tracker = new RigidFormationPoseTracker();
+        tracker.Step(Vector3.Zero, 0f, 10f, 6f, 1000);
+
+        var pose = tracker.Step(Vector3.Zero, 0.1f, 10f, 6f, 1100);
+
+        Assert.False(pose.IsTurning);
+        Assert.Equal(0f, pose.Rotation, precision: 5);
+    }
+
+    [Fact]
     public void SuddenAboutFaceFlipsFrameSoSlotsTakeDirectPathThroughLeader() {
         var tracker = new RigidFormationPoseTracker();
         var leader = new Vector3(5f, 0f, 7f);

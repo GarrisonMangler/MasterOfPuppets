@@ -18,7 +18,6 @@ internal enum SimpleMovementUpdateResult {
 
 internal interface ISimpleMovementStrategy {
     string Name { get; }
-    bool UsesNativeStopOnCompletion { get; }
     void Start(SimpleMovementContext context);
     SimpleMovementUpdateResult Update(SimpleMovementContext context, Vector3 playerPosition);
     void Stop();

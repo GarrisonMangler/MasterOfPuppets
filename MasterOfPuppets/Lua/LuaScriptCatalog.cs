@@ -21,7 +21,7 @@ internal static class LuaScriptCatalog {
     private const string DefaultSixteenVoicesFileName = "sixteen_voices.lua";
     public const string DefaultDynamicCongaName = "Dynamic Conga Line";
     private const string DefaultDynamicCongaFileName = "dynamic_conga.lua";
-    public const string DefaultMarchingFormationName = "Rigid Marching Formation";
+    public const string DefaultMarchingFormationName = "Marching (32)";
     private const string DefaultMarchingFormationFileName = "marching_formation.lua";
     // Keep every shipped stock source hash here. Upgrade checks canonicalize line
     // endings because collaborators can receive LF or CRLF copies of the same
@@ -33,8 +33,9 @@ internal static class LuaScriptCatalog {
         "a54a2600a41233552d4a2895826d3384f7d7f94a1906097de08c774ece5bcbae",
         "fbc89cc18f7b151ec387376634d0634a81cc119b0284909ae546245cc70759bc",
         "a4b6105a4aa9076cbc722dfed8cac076f81e6a87be6b6a6442db46085fb15de0",
+        "dd2ae3c57f1b3a9cbbda4e0ab8ca4dce9bcd04799328bc6074687bb8f769fba0",
     };
-    private const string DefaultMarchingFormationVariables = "$anchor =\n$group = \"32 Ordered\"\n$visible_only = true\n$rows = 4\n$columns = 8\n$horizontal = 1.0\n$vertical = 1.5\n$precision = 0.12\n$neighbor_correction = 0.25\n$maximum_neighbor_correction = 0.35";
+    private const string DefaultMarchingFormationVariables = "$anchor =\n$group = \"32 Ordered\"\n$visible_only = true\n$rows = 4\n$columns = 8\n$horizontal = 1.0\n$vertical = 1.5\n$precision = 0.12\n$neighbor_correction = 0.25\n$maximum_neighbor_correction = 0.35\n$preserve_emote = false";
     public const string DefaultSwirlingVortexName = "Swirling Vortex";
     private const string DefaultSwirlingVortexFileName = "swirling_vortex.lua";
     public const string DefaultTripleRingVortexName = "Swirling Vortex - Triple Ring";

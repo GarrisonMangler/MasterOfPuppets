@@ -7,12 +7,15 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using MasterOfPuppets.Extensions;
 using MasterOfPuppets.Extensions.Dalamud;
+using MasterOfPuppets.LuaScripting.Runs;
 
 namespace MasterOfPuppets;
 
 public static class MacroConditionEvaluator {
     private static readonly Regex BinaryOpRegex = new(@"^\s*(.*?)\s*(==|!=)\s*(.*?)\s*$", RegexOptions.Compiled);
     private static readonly Regex ExistsRegex = new(@"^(?:visible|exists)\s+(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex ScriptRunningRegex = new(@"^(?:scriptrunning|scriptactive)\s+(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex MacroRunningRegex = new(@"^(?:macrorunning|macroactive)\s+(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     /// <summary>
     /// Evaluates a condition asynchronously on the main framework thread to ensure safe access to game objects and Dalamud services.
@@ -33,6 +36,8 @@ public static class MacroConditionEvaluator {
     /// - Comparisons: target == "Name", "$var" == "val", "$var" != "", etc.
     /// - Player state: incombat, outcombat, isperforming, isalive, isdead, isleader, inparty
     /// - Object queries: visible "Name", exists "Name"
+    /// - Lua run queries: scriptrunning "Script Name" (or a run ID)
+    /// - Macro run queries: macrorunning "Macro Name"
     /// </summary>
     public static bool Evaluate(string condition, Plugin plugin) {
         if (string.IsNullOrWhiteSpace(condition))
@@ -91,6 +96,22 @@ public static class MacroConditionEvaluator {
                 o != null &&
                 (o.Name.TextValue.Equals(targetName, StringComparison.OrdinalIgnoreCase) ||
                  o.Name.TextValue.Contains(targetName, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        var scriptRunningMatch = ScriptRunningRegex.Match(expr);
+        if (scriptRunningMatch.Success) {
+            var selector = CleanQuotes(scriptRunningMatch.Groups[1].Value.Trim());
+            return plugin.LuaScriptManager.ActiveRuns.Any(run =>
+                (run.State is LuaRunState.Waiting or LuaRunState.Running) &&
+                (run.ScriptName.Equals(selector, StringComparison.OrdinalIgnoreCase) ||
+                 run.RunId.Equals(selector, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        var macroRunningMatch = MacroRunningRegex.Match(expr);
+        if (macroRunningMatch.Success) {
+            var selector = CleanQuotes(macroRunningMatch.Groups[1].Value.Trim());
+            return string.Equals(plugin.MacroHandler.MacroCurrentId, selector, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(plugin.MacroHandler.LoopCurrentId, selector, StringComparison.OrdinalIgnoreCase);
         }
 
         // Built-in keywords

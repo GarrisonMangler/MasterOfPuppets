@@ -15,7 +15,6 @@ public sealed class SimpleInputMovement : IDisposable {
     public const int SettleFrameCount = 3;
     public const float ContinuousPassEpsilon = 0.01f;
 
-    private readonly NativeStop _nativeStop = new();
     private readonly ForwardInputMovementController _forwardInput = new();
     private readonly ContinuousForwardMovementStrategy _continuousForward;
     private readonly FormationNaturalMovementStrategy _formationNatural;
@@ -32,7 +31,7 @@ public sealed class SimpleInputMovement : IDisposable {
         _continuousForward = new ContinuousForwardMovementStrategy(_forwardInput);
         _formationNatural = new FormationNaturalMovementStrategy(_forwardInput);
         _forwardPrecise = new ForwardPreciseMovementStrategy(_forwardInput);
-        _arrivePrecise = new ArrivePreciseMovementStrategy(_forwardInput, _nativeStop);
+        _arrivePrecise = new ArrivePreciseMovementStrategy(_forwardInput);
     }
 
     public void Dispose() {
@@ -48,11 +47,11 @@ public sealed class SimpleInputMovement : IDisposable {
 
     public void StopMove() {
         if (DalamudApi.Framework.IsInFrameworkUpdateThread) {
-            CancelActiveMove(callNativeStop: true);
+            CancelActiveMove();
             return;
         }
 
-        _ = DalamudApi.Framework.RunOnFrameworkThread(() => CancelActiveMove(callNativeStop: true));
+        _ = DalamudApi.Framework.RunOnFrameworkThread(() => CancelActiveMove());
     }
 
     public bool IsMoving => _activeStrategy != null || _cts != null;
@@ -109,11 +108,6 @@ public sealed class SimpleInputMovement : IDisposable {
             return activeCts;
         }
 
-        // MoveMode/PadMode use one baseline for the whole replacement chain. Walk/run state is
-        // different: non-preserving modes keep their own baseline, while Natural deliberately
-        // releases it so manual walk/run changes remain live.
-        CaptureControlBaselineIfNeeded();
-
         var currentPlayer = DalamudApi.ObjectTable.LocalPlayer;
         var needsMovement = currentPlayer != null
             && currentPlayer.Position.Distance2D(destination) > Math.Max(0f, precision);
@@ -123,19 +117,17 @@ public sealed class SimpleInputMovement : IDisposable {
             return null;
         }
 
-        // Capture walk state before cancellation because non-preserving movement modes may clear it.
-        // Live-toggle modes restore this value immediately and never change it while moving.
-        var savedIsWalking = SimpleMovementWalkState.IsWalking;
-        CancelActiveMove(callNativeStop: true);
+        // One baseline spans the whole replacement chain. Otherwise a replacement
+        // can capture the plugin's temporary forced setting as the user's setting.
+        CaptureControlBaselineIfNeeded();
+        var preserveWalkState = PreservesWalkState(movementMode);
+        if (!preserveWalkState)
+            _walkBaseline = CaptureWalkBaseline(_walkBaseline, SimpleMovementWalkState.IsWalking);
+
+        CancelActiveMove(restoreControlBaseline: false, restoreWalkBaseline: false);
 
         if (needsMovement)
             CancelPersistentEmote();
-        var preserveWalkState = PreservesWalkState(movementMode);
-        if (!preserveWalkState) {
-            _walkBaseline = CaptureWalkBaseline(
-                _walkBaseline,
-                savedIsWalking);
-        }
 
         if (preserveWalkState)
             RestoreWalkBaseline();
@@ -182,7 +174,7 @@ public sealed class SimpleInputMovement : IDisposable {
 
                 if (stuckTracker != null && stuckTracker.Update(player.Position, Environment.TickCount64, stuckTolerance, stuckTimeoutMs)) {
                     DalamudApi.PluginLog.Warning($"[SimpleInputMovement] Stuck for {stuckTimeoutMs}ms near {player.Position}; destination={destination}; mode={movementMode}; stopping.");
-                    CancelActiveMove(callNativeStop: true);
+                    CancelActiveMove();
                     return;
                 }
 
@@ -195,9 +187,6 @@ public sealed class SimpleInputMovement : IDisposable {
                 var newerMoveStarted = _cts != null && !ReferenceEquals(_cts, cts);
                 if (!newerMoveStarted) {
                     StopStrategies();
-                    if (strategy.UsesNativeStopOnCompletion)
-                        _nativeStop.Stop();
-
                     RestoreControlBaseline();
                     RestoreWalkBaseline();
 
@@ -361,7 +350,6 @@ public sealed class SimpleInputMovement : IDisposable {
         };
 
     private void CancelActiveMove(
-        bool callNativeStop,
         bool restoreControlBaseline = true,
         bool restoreWalkBaseline = true) {
         var wasMovingWithNonPreservedWalk = _activeMovementMode is { } activeMode
@@ -376,12 +364,6 @@ public sealed class SimpleInputMovement : IDisposable {
         StopStrategies();
         if (wasMovingWithNonPreservedWalk)
             SimpleMovementWalkState.IsWalking = false;
-
-        if (callNativeStop
-            && DalamudApi.ObjectTable.LocalPlayer != null
-            && DalamudApi.ClientState.IsLoggedIn) {
-            _nativeStop.Stop();
-        }
 
         if (restoreControlBaseline)
             RestoreControlBaseline();
