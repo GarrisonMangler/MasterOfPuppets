@@ -28,16 +28,22 @@ public class FormationAnchorRulesTests {
     }
 
     [Fact]
-    public void TargetFallbackIsAllowedOnlyForRawEmptyPointOne() {
-        var formation = new Formation {
+    public void TargetFallbackIsAllowedRegardlessOfPointOneAssignment() {
+        var unassignedPointOne = new Formation {
             Points = [
                 new FormationPoint(),
             ],
         };
+        var assignedPointOne = new Formation {
+            Points = [
+                new FormationPoint { Cids = [123UL] },
+            ],
+        };
 
-        Assert.True(FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(formation, FormationAnchorKind.Target));
-        Assert.True(FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(formation, FormationAnchorKind.FocusTarget));
-        Assert.False(FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(formation, FormationAnchorKind.Self));
+        Assert.True(FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(unassignedPointOne, FormationAnchorKind.Target));
+        Assert.True(FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(assignedPointOne, FormationAnchorKind.Target));
+        Assert.True(FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(assignedPointOne, FormationAnchorKind.FocusTarget));
+        Assert.False(FormationAnchorRules.ShouldUseLeaderFallbackOnTargetlessAnchor(assignedPointOne, FormationAnchorKind.Self));
     }
 
     [Fact]

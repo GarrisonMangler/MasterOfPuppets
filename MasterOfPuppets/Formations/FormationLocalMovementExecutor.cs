@@ -156,6 +156,7 @@ public static class FormationLocalMovementExecutor {
         Plugin plugin,
         string formationName,
         FormationResolvedAnchor resolvedAnchor,
+        ulong anchorContentId,
         SimpleMovementMode movementMode,
         string eligibleMemberBits) {
         const string logPrefix = "mopformation";
@@ -176,24 +177,48 @@ public static class FormationLocalMovementExecutor {
             return false;
         }
 
-        var anchorPointIndex = FormationPointMovement.AnchorPointIndex;
-        var anchorPosition = FormationPointMovement.AdjustExternalOriginPosition(
+        var assignedAnchorPointIndex = anchorContentId == 0
+            ? -1
+            : FormationExecution.GetAssignedPointIndex(formation, anchorContentId, plugin.Config.CidsGroups);
+        if (assignedAnchorPointIndex >= 0 && anchorContentId == localCid) {
+            plugin.FormationTrackingSession.Stop();
+            if (plugin.SimpleInputMovement.IsMoving)
+                plugin.SimpleInputMovement.StopMove();
+            return true;
+        }
+
+        var anchorPointIndex = assignedAnchorPointIndex >= 0
+            ? assignedAnchorPointIndex
+            : FormationPointMovement.AnchorPointIndex;
+        var normalizeAnchorRotation = assignedAnchorPointIndex >= 0;
+        var anchorRotation = ResolveAnchorFrameRotation(
             formation,
             anchorPointIndex,
-            resolvedAnchor.Position,
-            resolvedAnchor.Rotation);
+            resolvedAnchor.Rotation,
+            normalizeAnchorRotation);
+        var externalOrigin = assignedAnchorPointIndex < 0;
+        var anchorPosition = externalOrigin
+            ? FormationPointMovement.AdjustExternalOriginPosition(
+                formation,
+                anchorPointIndex,
+                resolvedAnchor.Position,
+                anchorRotation)
+            : resolvedAnchor.Position;
+        resolvedAnchor = resolvedAnchor with {
+            ContentId = anchorContentId == 0 ? null : anchorContentId,
+        };
         return ExecuteAnchoredMove(
             plugin,
             formation,
             destinationPointIndex,
             anchorPointIndex,
             anchorPosition,
-            resolvedAnchor.Rotation,
+            anchorRotation,
             movementMode,
             logPrefix,
             resolvedAnchor,
-            false,
-            true);
+            normalizeAnchorRotation,
+            externalOrigin);
     }
 
     public static int ResolveAnchorPointIndex(

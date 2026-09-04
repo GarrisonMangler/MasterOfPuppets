@@ -22,6 +22,7 @@ public class FormationChatSyncCodecTests {
             -30.75f,
             1.2f,
             "External Target",
+            0,
             1234,
             "precise");
 
@@ -45,6 +46,7 @@ public class FormationChatSyncCodecTests {
             3f,
             0f,
             "External Target",
+            0,
             1234,
             "precise");
 
@@ -65,10 +67,37 @@ public class FormationChatSyncCodecTests {
             3f,
             0f,
             "External Target",
+            0,
             1234,
             "precise");
 
         Assert.False(FormationChatSyncCodec.TryDecode(FormationChatSyncCodec.Encode(source), out _));
+    }
+
+    [Fact]
+    public void SenderFallbackSnapshot_RoundTripsAssignedAnchorIdentityWithinChatLimit() {
+        var source = new FormationChatAnchorPayload(
+            FormationChatSyncCodec.CurrentSchemaVersion,
+            Guid.NewGuid().ToString("D"),
+            DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            "Circle 4.5 (32)",
+            129,
+            "/////w==",
+            123.456f,
+            7.89f,
+            -456.123f,
+            2.75f,
+            "Formation Leader@Long World Name",
+            18014498545172021UL,
+            123456789UL,
+            "precise");
+
+        var encoded = FormationChatSyncCodec.Encode(source);
+
+        Assert.True(FormationChatSyncCodec.TryDecode(encoded, out var decoded));
+        Assert.Equal(source, decoded);
+        Assert.True(System.Text.Encoding.UTF8.GetByteCount($"/cwl2 {FormationChatSyncCodec.CommandName} {encoded}") <= 500);
+
     }
 
     [Fact]

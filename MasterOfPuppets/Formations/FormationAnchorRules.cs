@@ -28,13 +28,13 @@ public static class FormationAnchorRules {
 
     /// <summary>
     /// Whether a target or focus-target anchor may fall back to the command leader.
-    /// Only the raw-empty point-1 wildcard-origin case qualifies.
+    /// This is independent of point-1 assignment so every command transport has
+    /// the same deterministic targetless behavior.
     /// </summary>
     public static bool ShouldUseLeaderFallbackOnTargetlessAnchor(
         Formation formation,
         FormationAnchorKind anchorKind) =>
-        anchorKind is FormationAnchorKind.Target or FormationAnchorKind.FocusTarget
-        && IsPointOneUnassigned(formation);
+        anchorKind is FormationAnchorKind.Target or FormationAnchorKind.FocusTarget;
 
     /// <summary>
     /// Whether the issuer should be rejected because they have no role in the formation.

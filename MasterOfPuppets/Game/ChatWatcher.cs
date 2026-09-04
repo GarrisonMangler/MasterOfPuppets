@@ -575,15 +575,30 @@ internal class ChatWatcher : IDisposable {
                 return;
             }
 
-            if (!FormationAnchorResolver.TryResolve(
+            var targetResolved = FormationAnchorResolver.TryResolve(
                     Plugin,
                     new Formation(),
                     anchor.Anchor,
                     out var resolvedTarget,
                     out var failureReason,
-                    out var failureKind)) {
-                LogFormationAnchorFailure(failureReason, failureKind);
-                return;
+                    out var failureKind);
+            var anchorContentId = 0UL;
+            if (!targetResolved) {
+                if (failureKind != FormationAnchorFailureKind.NoTargetSelected
+                    || !FormationAnchorResolver.TryResolve(
+                        Plugin,
+                        formation,
+                        FormationAnchorReference.Self,
+                        out resolvedTarget,
+                        out _,
+                        out _)) {
+                    LogFormationAnchorFailure(failureReason, failureKind);
+                    return;
+                }
+
+                anchorContentId = resolvedTarget.ContentId ?? DalamudApi.PlayerState.ContentId;
+                DalamudApi.PluginLog.Debug(
+                    "[mopformation] no target selected; using the command sender as the formation anchor");
             }
 
             var channelPrefix = chatType.ToChatPrefix();
@@ -603,6 +618,7 @@ internal class ChatWatcher : IDisposable {
                 resolvedTarget.Position.Z,
                 resolvedTarget.Rotation,
                 resolvedTarget.Name,
+                anchorContentId,
                 resolvedTarget.GameObjectId ?? 0,
                 SimpleInputMovement.FormatMode(anchor.MovementMode));
             var payload = FormationChatSyncCodec.Encode(snapshot);
@@ -613,6 +629,7 @@ internal class ChatWatcher : IDisposable {
                     Plugin,
                     args[0],
                     resolvedTarget,
+                    anchorContentId,
                     anchor.MovementMode,
                     eligibleMemberBits);
                 return;
@@ -636,6 +653,7 @@ internal class ChatWatcher : IDisposable {
                 Plugin,
                 args[0],
                 resolvedTarget,
+                anchorContentId,
                 anchor.MovementMode,
                 eligibleMemberBits);
             return;
@@ -696,6 +714,7 @@ internal class ChatWatcher : IDisposable {
                         null,
                         payload.AnchorName,
                         payload.AnchorGameObjectId == 0 ? null : payload.AnchorGameObjectId),
+                payload.AnchorContentId,
                 movementMode,
                 payload.EligibleMemberBits));
     }

@@ -60,7 +60,9 @@ public static class FormationAnchorResolver {
                 resolved = resolved with { ContentId = ResolveContentIdFromName(plugin, resolved.Name) };
                 return true;
             case FormationAnchorKind.Target: {
-                var target = DalamudApi.TargetManager.Target ?? player.TargetObject;
+                var target = DalamudApi.TargetManager.SoftTarget
+                    ?? DalamudApi.TargetManager.Target
+                    ?? player.TargetObject;
                 if (target == null) {
                     failureReason = "no target selected";
                     failureKind = FormationAnchorFailureKind.NoTargetSelected;
@@ -95,7 +97,9 @@ public static class FormationAnchorResolver {
             case FormationAnchorKind.Named:
                 if (string.Equals(anchor.Name, "<t>", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(anchor.Name, "[t]", StringComparison.OrdinalIgnoreCase)) {
-                    var namedTarget = DalamudApi.TargetManager.Target ?? player.TargetObject;
+                    var namedTarget = DalamudApi.TargetManager.SoftTarget
+                        ?? DalamudApi.TargetManager.Target
+                        ?? player.TargetObject;
                     if (namedTarget == null) {
                         failureReason = "no target selected";
                         failureKind = FormationAnchorFailureKind.NoTargetSelected;

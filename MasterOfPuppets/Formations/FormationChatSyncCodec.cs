@@ -2,27 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MasterOfPuppets.Formations;
 
 internal sealed record FormationChatAnchorPayload(
-    int SchemaVersion,
-    string MessageId,
-    long CreatedUnixMilliseconds,
-    string FormationName,
-    uint TerritoryId,
-    string EligibleMemberBits,
-    float X,
-    float Y,
-    float Z,
-    float Rotation,
-    string AnchorName,
-    ulong AnchorGameObjectId,
-    string MovementMode);
+    [property: JsonPropertyName("v")] int SchemaVersion,
+    [property: JsonPropertyName("id")] string MessageId,
+    [property: JsonPropertyName("ts")] long CreatedUnixMilliseconds,
+    [property: JsonPropertyName("f")] string FormationName,
+    [property: JsonPropertyName("t")] uint TerritoryId,
+    [property: JsonPropertyName("e")] string EligibleMemberBits,
+    [property: JsonPropertyName("x")] float X,
+    [property: JsonPropertyName("y")] float Y,
+    [property: JsonPropertyName("z")] float Z,
+    [property: JsonPropertyName("r")] float Rotation,
+    [property: JsonPropertyName("n")] string AnchorName,
+    [property: JsonPropertyName("c")] ulong AnchorContentId,
+    [property: JsonPropertyName("g")] ulong AnchorGameObjectId,
+    [property: JsonPropertyName("m")] string MovementMode);
 
 internal static class FormationChatSyncCodec {
     internal const string CommandName = "mopformationanchor";
-    internal const int CurrentSchemaVersion = 3;
+    internal const int CurrentSchemaVersion = 4;
 
     internal static string Encode(FormationChatAnchorPayload payload) {
         var json = JsonSerializer.SerializeToUtf8Bytes(payload);
