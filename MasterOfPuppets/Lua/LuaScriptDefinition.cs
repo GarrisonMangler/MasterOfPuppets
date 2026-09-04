@@ -104,9 +104,11 @@ public sealed class LuaScriptDefinition {
     public string BundleHash {
         get {
             using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-            AppendHash(hash, "mop.lua.bundle.v2");
+            // A bundle hash identifies executable contract content shared between clients.
+            // Id and Revision identify one local catalog entry and are deliberately excluded:
+            // importing a shared script assigns a fresh local identity.
+            AppendHash(hash, "mop.lua.bundle.v3");
             AppendHash(hash, SchemaVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            AppendHash(hash, Id ?? string.Empty);
             AppendHash(hash, Hash);
             AppendHash(hash, DependencyManifestHash);
             AppendHash(hash, RequiredResources.HasValue

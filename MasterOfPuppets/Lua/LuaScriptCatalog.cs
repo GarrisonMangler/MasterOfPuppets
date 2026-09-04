@@ -420,7 +420,12 @@ internal static class LuaScriptCatalog {
 
     public static string Export(LuaScriptDefinition script) {
         ArgumentNullException.ThrowIfNull(script);
-        return script.Clone().JsonSerialize().Compress();
+        var portable = script.Clone();
+        // Catalog identity is installation-local. The importer assigns a new identity, so
+        // exporting these values leaks irrelevant state and can make equal copies look distinct.
+        portable.Id = string.Empty;
+        portable.Revision = 1;
+        return portable.JsonSerialize().Compress();
     }
 
     public static LuaScriptDefinition Import(string text) {
