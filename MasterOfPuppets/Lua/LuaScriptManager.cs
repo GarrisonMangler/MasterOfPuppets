@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using MasterOfPuppets.LuaScripting.Coordination;
 using MasterOfPuppets.LuaScripting.Events;
 using MasterOfPuppets.LuaScripting.Runs;
 using MasterOfPuppets.LuaScripting.Snapshots;
+using MasterOfPuppets.LuaScripting.Watches;
 
 namespace MasterOfPuppets.LuaScripting;
 
@@ -21,6 +23,7 @@ internal sealed class LuaScriptManager : IDisposable {
     private const int MaximumHistoryCount = 50;
 
     private readonly Plugin _plugin;
+    private readonly LuaActorWatchService _actorWatches = new();
     private readonly LuaResourceLeaseManager _resourceLeases = new();
     private readonly object _stateLock = new();
     private readonly Dictionary<string, ManagedLuaRun> _activeRuns = new(StringComparer.OrdinalIgnoreCase);
@@ -32,6 +35,8 @@ internal sealed class LuaScriptManager : IDisposable {
     public LuaScriptManager(Plugin plugin) {
         _plugin = plugin;
         DalamudApi.ChatGui.ChatMessage += OnChatMessage;
+        _plugin.CombatActionObserver.ActionObserved += OnCombatActionObserved;
+        _plugin.EmoteObserver.EmotePlayed += OnEmotePlayed;
     }
 
     public string Status => GetStatusText();
@@ -62,6 +67,104 @@ internal sealed class LuaScriptManager : IDisposable {
     internal LuaRunSnapshot? FindHistorySnapshot(string runId) {
         lock (_stateLock)
             return _history.FirstOrDefault(run => run.RunId.Equals(runId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    internal bool TryUpdateParticipantRoster(
+        string runId,
+        IReadOnlyList<ulong> participants,
+        ulong senderContentId,
+        out string reason) {
+        lock (_stateLock) {
+            if (!_activeRuns.TryGetValue(runId, out var run)) {
+                reason = "Lua run is not active";
+                return false;
+            }
+            var normalized = participants.Where(cid => cid != 0).Distinct().ToArray();
+            if (run.Coordination is not LuaRunCoordinationState state
+                || senderContentId != state.ConductorContentId) {
+                reason = "participant roster update sender is not the run conductor";
+                return false;
+            }
+            if (!state.TryUpdateParticipantRoster(normalized, out reason))
+                return false;
+            run.ParticipantCids.Clear();
+            run.ParticipantCids.AddRange(normalized);
+            foreach (var cid in normalized) {
+                var configured = _plugin.Config.Characters.FirstOrDefault(character => character.Cid == cid);
+                if (configured != null)
+                    run.ConfiguredParticipantNames[cid] = configured.Name ?? string.Empty;
+            }
+            reason = string.Empty;
+            return true;
+        }
+    }
+
+    internal bool TryApplyCoordinationVariable(
+        string runId,
+        string key,
+        string value,
+        long sequence,
+        ulong senderContentId,
+        DateTimeOffset receivedAt,
+        out string reason) {
+        lock (_stateLock) {
+            if (!_activeRuns.TryGetValue(runId, out var run)
+                || run.Coordination is not LuaRunCoordinationState state) {
+                reason = "Lua coordination run is not active";
+                return false;
+            }
+            return state.ApplyVariable(key, value, sequence, senderContentId, receivedAt, out reason);
+        }
+    }
+
+    internal bool TryApplyCoordinationMessage(
+        string runId,
+        LuaParticipantMessageSnapshot message,
+        out string reason) {
+        lock (_stateLock) {
+            if (!_activeRuns.TryGetValue(runId, out var run)
+                || run.Coordination is not LuaRunCoordinationState state) {
+                reason = "Lua coordination run is not active";
+                return false;
+            }
+            return state.ApplyMessage(message, out reason);
+        }
+    }
+
+    internal bool TryGetCoordinationParticipantSlot(string runId, ulong senderContentId, out int slot) {
+        lock (_stateLock) {
+            if (_activeRuns.TryGetValue(runId, out var run)
+                && run.Coordination is LuaRunCoordinationState state)
+                return state.TryGetParticipantSlot(senderContentId, out slot);
+        }
+        slot = -1;
+        return false;
+    }
+
+    internal bool PublishMirrorEmoteResync(
+        string runId,
+        uint emoteId,
+        bool persistent,
+        ulong targetId,
+        Guid messageId,
+        string senderName) {
+        ManagedLuaRun? run;
+        lock (_stateLock) {
+            if (!_activeRuns.TryGetValue(runId, out run)
+                || !run.Instance.Snapshot.ScriptName.Equals(
+                    LuaScriptCatalog.MirrorScriptV2Name,
+                    StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+        run.Events.Publish("mirror.remote-emote-resync", new Dictionary<string, string> {
+            ["run_id"] = runId,
+            ["emote_id"] = emoteId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["persistent"] = persistent ? "true" : "false",
+            ["target_id"] = targetId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["message_id"] = messageId.ToString("D"),
+            ["sender"] = senderName ?? string.Empty,
+        });
+        return true;
     }
 
     public IReadOnlyList<LuaRunDiagnosticsSnapshot> Diagnostics {
@@ -130,6 +233,21 @@ internal sealed class LuaScriptManager : IDisposable {
             seed,
             MaximumRunTime);
         if (!_resourceLeases.TryAcquire(runId, resources, out var lease, out var conflict)) {
+            var conflictingRuns = FindActive(null)
+                .Where(r => r.Instance.ScriptName.Equals(scriptName, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (conflictingRuns.Count > 0) {
+                foreach (var run in conflictingRuns) {
+                    run.Instance.RequestStop("superseded by new run");
+                    StopMovement(run);
+                    run.Events.Publish("run.stop-requested", new Dictionary<string, string> { ["reason"] = "superseded" });
+                    _resourceLeases.Release(run.Instance.RunId, run.Lease.Resources);
+                }
+                _resourceLeases.TryAcquire(runId, resources, out lease, out conflict);
+            }
+        }
+
+        if (lease == null) {
             var exception = new LuaResourceConflictException(conflict!);
             instance.Fail(exception);
             AddHistory(instance.Snapshot);
@@ -148,6 +266,9 @@ internal sealed class LuaScriptManager : IDisposable {
             orderedParticipants,
             isConductor: true,
             isDistributed: false);
+        var liveVariables = new ConcurrentDictionary<string, string>(
+            variables ?? new Dictionary<string, string>(),
+            StringComparer.OrdinalIgnoreCase);
 
         var managed = new ManagedLuaRun(
             instance,
@@ -161,9 +282,11 @@ internal sealed class LuaScriptManager : IDisposable {
             new LuaGameEventTracker(),
             orderedParticipants,
             configuredParticipantNames,
+            liveVariables,
             runTargetObjectId,
             runTargetEntityId,
-            runTargetName);
+            runTargetName,
+            coordination);
         managed.VisibleCompactSlot = slot;
         managed.VisibleCount = Math.Max(1, orderedParticipants.Count);
         if (coordination is LuaRunCoordinationState coordinationState)
@@ -214,12 +337,12 @@ internal sealed class LuaScriptManager : IDisposable {
                     if (!IsCurrent(managed))
                         return;
                     var isRunTarget = !string.IsNullOrWhiteSpace(runTargetName)
-                        && FormationCharacterName.MatchScore(runTargetName, normalizedAnchor) >= 0;
+                        && FormationCharacterName.Matches(runTargetName, normalizedAnchor);
                     var anchorObjectId = isRunTarget ? runTargetObjectId : 0;
                     var anchorEntityId = isRunTarget ? runTargetEntityId : 0;
                     var localIsAnchor = (anchorObjectId != 0 && localPlayer?.GameObjectId == anchorObjectId)
                         || (anchorEntityId != 0 && localPlayer?.EntityId == anchorEntityId)
-                        || FormationCharacterName.MatchScore(normalizedAnchor, localName) >= 0;
+                        || FormationCharacterName.Matches(normalizedAnchor, localName);
                     if (localIsAnchor) {
                         managed.Trajectory.Stop(stopMovement: true);
                         managed.ActorFollow.Stop(stopMovement: true);
@@ -247,7 +370,7 @@ internal sealed class LuaScriptManager : IDisposable {
                     instance.SetDetail($"following: {request.AnchorCandidates[0]}");
                 });
             },
-            Variables: variables,
+            Variables: liveVariables,
             RunId: runId,
             ScriptName: scriptName,
             DalamudVersion: typeof(Dalamud.Plugin.Services.IFramework).Assembly.GetName().Version?.ToString() ?? "unknown",
@@ -289,7 +412,26 @@ internal sealed class LuaScriptManager : IDisposable {
                 return group.Cids.Select(cid => characterMap.TryGetValue(cid, out var charName) && !string.IsNullOrWhiteSpace(charName) ? charName : cid.ToString()).ToList();
             },
             IsWalking: () => SimpleMovementWalkState.IsWalking,
-            GetVisibleRoster: () => (managed.VisibleCompactSlot, managed.VisibleCount));
+            GetVisibleRoster: () => (managed.VisibleCompactSlot, managed.VisibleCount),
+            WatchActor: (query, cancellationToken) => DalamudApi.Framework
+                .RunOnFrameworkThread(() => _actorWatches.Watch(runId, query, managed.Events))
+                .WaitAsync(cancellationToken),
+            UnwatchActor: (watchId, cancellationToken) => DalamudApi.Framework
+                .RunOnFrameworkThread(() => _actorWatches.Unwatch(runId, watchId))
+                .WaitAsync(cancellationToken),
+            RequestGlobalStop: MirrorRunTargetValidator.AppliesTo(scriptName)
+                ? (reason, cancellationToken) => _plugin.IpcProvider.BroadcastChatSyncedMirrorStopAsync(
+                    runId, reason, slot, cancellationToken)
+                : null,
+            RequestEmoteResync: MirrorRunTargetValidator.AppliesTo(scriptName)
+                ? (emoteId, persistent, targetId, cancellationToken) =>
+                    _plugin.IpcProvider.BroadcastChatSyncedMirrorEmoteResyncAsync(
+                        runId, emoteId, persistent, targetId, cancellationToken)
+                : null,
+            GetActorEventSources: () => new LuaActorEventSources(
+                StateChanges: true,
+                CombatActions: _plugin.CombatActionObserver.IsAvailable,
+                Emotes: _plugin.EmoteObserver.IsAvailable));
 
         _ = Task.Run(async () => {
             try {
@@ -324,6 +466,7 @@ internal sealed class LuaScriptManager : IDisposable {
     }
 
     public void Update() {
+        _actorWatches.Update(Environment.TickCount64);
         ManagedLuaRun[] runs;
         lock (_stateLock)
             runs = _activeRuns.Values.ToArray();
@@ -334,6 +477,21 @@ internal sealed class LuaScriptManager : IDisposable {
             run.ActorFollow.Update();
             ObserveGameEvents(run);
         }
+    }
+
+    public int UpdateActiveVariables(IReadOnlyDictionary<string, string> variables) {
+        if (variables.Count == 0)
+            return 0;
+
+        ManagedLuaRun[] runs;
+        lock (_stateLock)
+            runs = _activeRuns.Values.ToArray();
+        foreach (var run in runs) {
+            foreach (var (name, value) in variables)
+                run.Variables[name] = value;
+            run.Events.Publish("run.variables-updated", variables);
+        }
+        return runs.Length;
     }
 
     private static void ObserveGameEvents(ManagedLuaRun run) {
@@ -528,6 +686,7 @@ internal sealed class LuaScriptManager : IDisposable {
                 _primaryRunId = _activeRuns.Values.OrderByDescending(value => value.Instance.CreatedAt).FirstOrDefault()?.Instance.RunId;
         }
         StopMovement(run);
+        _actorWatches.ReleaseOwner(run.Instance.RunId);
         run.Lease.Dispose();
         run.Logs.Append("lifecycle", $"run finished as {snapshot.State.ToString().ToLowerInvariant()}: {snapshot.StopReason}");
         run.Events.Publish("run.terminal", new Dictionary<string, string> {
@@ -642,8 +801,67 @@ internal sealed class LuaScriptManager : IDisposable {
             });
     }
 
+    private void OnCombatActionObserved(CombatActionObservation observation) {
+        ManagedLuaRun[] runs;
+        lock (_stateLock)
+            runs = _activeRuns.Values
+                .Where(run => run.Events.IsInterested("combat.action"))
+                .ToArray();
+
+        var hasObservedSource = _actorWatches.HasObservedSource(observation.SourceEntityId);
+        if (runs.Length == 0 && !hasObservedSource)
+            return;
+        var isGroundTargeted = ActionHelper.IsGroundTargeted(observation.ActionId);
+        if (hasObservedSource)
+            _actorWatches.PublishCombatAction(observation, isGroundTargeted);
+        if (runs.Length == 0)
+            return;
+
+        var targets = string.Join(',', observation.TargetIds);
+        var data = new Dictionary<string, string>(StringComparer.Ordinal) {
+            ["source_entity_id"] = observation.SourceEntityId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["action_id"] = observation.ActionId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["action_type"] = observation.ActionType.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["global_sequence"] = observation.GlobalSequence.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["source_sequence"] = observation.SourceSequence.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["spell_id"] = observation.SpellId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["animation_target_id"] = observation.AnimationTargetId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["target_ids"] = targets,
+            ["is_ground_targeted"] = isGroundTargeted ? "true" : "false",
+        };
+        if (observation.TargetPosition is { } position) {
+            data["target_x"] = position.X.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+            data["target_y"] = position.Y.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+            data["target_z"] = position.Z.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        foreach (var run in runs)
+            run.Events.Publish("combat.action", data, observation.Timestamp);
+    }
+
+    private void OnEmotePlayed(EmoteObservation observation) {
+        _actorWatches.PublishEmote(observation);
+        ManagedLuaRun[] runs;
+        lock (_stateLock)
+            runs = _activeRuns.Values
+                .Where(run => run.Events.IsInterested("emote.played"))
+                .ToArray();
+        if (runs.Length == 0)
+            return;
+        var data = new Dictionary<string, string>(StringComparer.Ordinal) {
+            ["source_entity_id"] = observation.SourceEntityId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["emote_id"] = observation.EmoteId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["target_id"] = observation.TargetId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["is_persistent"] = observation.IsPersistent ? "true" : "false",
+        };
+        foreach (var run in runs)
+            run.Events.Publish("emote.played", data, observation.Timestamp);
+    }
+
     public void Dispose() {
         DalamudApi.ChatGui.ChatMessage -= OnChatMessage;
+        _plugin.CombatActionObserver.ActionObserved -= OnCombatActionObserved;
+        _plugin.EmoteObserver.EmotePlayed -= OnEmotePlayed;
         ManagedLuaRun[] runs;
         lock (_stateLock) {
             runs = _activeRuns.Values.ToArray();
@@ -653,9 +871,11 @@ internal sealed class LuaScriptManager : IDisposable {
         foreach (var run in runs) {
             run.Instance.RequestCancel("plugin disposed");
             StopMovement(run);
+            _actorWatches.ReleaseOwner(run.Instance.RunId);
             run.Lease.Dispose();
             run.Events.Dispose();
         }
+        _actorWatches.Dispose();
     }
 
     private sealed record ManagedLuaRun(
@@ -668,11 +888,13 @@ internal sealed class LuaScriptManager : IDisposable {
         LuaEventHub Events,
         LuaRunLogBuffer Logs,
         LuaGameEventTracker GameEvents,
-        IReadOnlyList<ulong> ParticipantCids,
-        IReadOnlyDictionary<ulong, string> ConfiguredParticipantNames,
+        List<ulong> ParticipantCids,
+        Dictionary<ulong, string> ConfiguredParticipantNames,
+        ConcurrentDictionary<string, string> Variables,
         ulong RunTargetObjectId,
         uint RunTargetEntityId,
-        string RunTargetName) {
+        string RunTargetName,
+        ILuaCoordinationFacade Coordination) {
         public int VisibleCompactSlot { get; set; }
         public int VisibleCount { get; set; } = 1;
     }

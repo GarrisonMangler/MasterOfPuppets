@@ -72,6 +72,9 @@ public sealed class LuaCoordinationTests {
             local cue = mop.messages.next("cue", 1)
             assert(cue.status == "message" and cue.payload == "places")
             assert(cue.schema_version == 2 and cue.target_content_id == "10")
+            assert(mop.messages.broadcast("stop", "2|X|target|0", 2).ok)
+            local stop = mop.messages.next("stop", 1)
+            assert(stop.schema_version == 2 and stop.target_content_id == "0")
             """, CancellationToken.None);
     }
 
@@ -86,5 +89,46 @@ public sealed class LuaCoordinationTests {
         Assert.False(state.TryGetShared("scene", out _));
         Assert.False(state.SendMessage("cue", "places", 1, 0).Ok);
         Assert.False(state.TryReadMessage(null, out _));
+    }
+
+    [Fact]
+    public void DynamicRosterUpdatePreservesConductorAndAdmitsOnlyCurrentSenders() {
+        var state = new LuaRunCoordinationState(
+            20,
+            [10, 20],
+            isConductor: false,
+            isDistributed: true,
+            conductorContentId: 10);
+
+        Assert.False(state.ApplyVariable("scene", "spoofed", 1, 20, DateTimeOffset.UtcNow, out var spoofed));
+        Assert.Contains("not the run conductor", spoofed);
+        Assert.True(state.ApplyVariable("scene", "before-rejoin", 5, 10, DateTimeOffset.UtcNow, out _));
+        Assert.True(state.TryGetShared("scene", out var beforeRejoin));
+        Assert.True(state.TryUpdateParticipantRoster([10, 20, 30], out _));
+        Assert.True(state.ApplyVariable("scene", "after-rejoin", 1, 10, DateTimeOffset.UtcNow, out _));
+        Assert.True(state.TryGetShared("scene", out var afterRejoin));
+        Assert.True(afterRejoin!.Sequence > beforeRejoin!.Sequence);
+        Assert.Equal([10ul, 20ul, 30ul], state.ParticipantContentIds.ToArray());
+        Assert.True(state.TryUpdateParticipantRoster([10, 40, 30], out _));
+        Assert.Equal([10ul, 40ul, 30ul], state.ParticipantContentIds.ToArray());
+        Assert.False(state.TryUpdateParticipantRoster([99, 40, 30], out var conductorChanged));
+        Assert.Contains("slot zero", conductorChanged);
+
+        var joined = new LuaParticipantMessageSnapshot(
+            Guid.NewGuid(), "member", "hello", 2, 1, 30, 0, DateTimeOffset.UtcNow);
+        Assert.True(state.ApplyMessage(joined, out _));
+        Assert.True(state.TryUpdateParticipantRoster([10, 40, 30], out _));
+        Assert.True(state.ApplyMessage(joined with {
+            MessageId = Guid.NewGuid(),
+            Sequence = 1,
+        }, out _));
+        Assert.False(state.ApplyMessage(joined, out var replayedId));
+        Assert.Contains("already received", replayedId);
+        Assert.False(state.ApplyMessage(joined with {
+            MessageId = Guid.NewGuid(),
+            SenderContentId = 50,
+            Sequence = 1,
+        }, out var outside));
+        Assert.Contains("outside", outside);
     }
 }

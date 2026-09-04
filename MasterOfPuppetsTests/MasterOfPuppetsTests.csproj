@@ -19,6 +19,10 @@
 
     <ItemGroup>
         <ProjectReference Include="..\MasterOfPuppets\MasterOfPuppets.csproj" />
+        <EmbeddedResource Include="Fixtures\TornadoV2Original.macro.blob.txt"
+                          LogicalName="MasterOfPuppetsTests.OriginalTornadoV2" />
+        <EmbeddedResource Include="Fixtures\CampfirePlaceOriginal.macro.blob.txt"
+                          LogicalName="MasterOfPuppetsTests.OriginalCampfirePlace" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(DALAMUD_HOME)' == '' and Exists('$(APPDATA)\XIVLauncher\addon\Hooks\dev\Dalamud.dll')">

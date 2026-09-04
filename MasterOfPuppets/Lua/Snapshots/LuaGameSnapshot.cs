@@ -15,6 +15,20 @@ public sealed record LuaActorSnapshot(
     bool IsLocal,
     bool IsTargetable,
     bool IsDead,
+    bool IsLoaded,
+    bool IsJumping,
+    uint MountId,
+    uint CompanionId,
+    uint EmoteId,
+    string EmoteTargetGameObjectId,
+    bool IsEmoteLooping,
+    byte PoseType,
+    byte PoseState,
+    uint OrnamentId,
+    uint FacewearId,
+    bool IsWeaponDrawn,
+    uint OnlineStatusId,
+    string OnlineStatusName,
     uint ClassJobId,
     int Level,
     uint CurrentHp,
@@ -30,7 +44,12 @@ public sealed record LuaActorSnapshot(
     uint CastActionId,
     string CastTargetGameObjectId,
     float CurrentCastTime,
-    float TotalCastTime);
+    float TotalCastTime) {
+    public bool IsHeadgearVisible { get; init; }
+    public bool IsVisorToggled { get; init; }
+    public bool IsMoving { get; init; }
+    public bool IsWalking { get; init; }
+}
 
 public sealed record LuaParticipantSnapshot(
     int Slot,

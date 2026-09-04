@@ -9,6 +9,7 @@ using MasterOfPuppets.Extensions.Dalamud;
 using MasterOfPuppets.Formations;
 using MasterOfPuppets.LuaScripting.Choreography;
 using MasterOfPuppets.LuaScripting.Runs;
+using MasterOfPuppets.LuaScripting.Watches;
 using MasterOfPuppets.Movement;
 
 namespace MasterOfPuppets.LuaScripting;
@@ -269,22 +270,10 @@ internal sealed class LuaTrajectoryController {
         if (_anchorName.Length == 0)
             return null;
 
-        IGameObject? bestMatch = null;
-        var bestScore = -1;
-        foreach (var actor in DalamudApi.ObjectTable) {
-            if (!IsUsable(actor))
-                continue;
-            var actorName = actor.GetPlayerNameWorld() ?? actor.Name.TextValue;
-            var score = FormationCharacterName.MatchScore(_anchorName, actorName);
-            if (score <= bestScore)
-                continue;
-            bestMatch = actor;
-            bestScore = score;
-            if (score == int.MaxValue)
-                break;
-        }
-
-        return bestMatch;
+        // A name fallback must never bind according to object-table order.
+        // Ambiguous names remain unresolved until the original ID is visible
+        // again or a unique Name@World match exists.
+        return LuaActorQueryResolver.ResolvePlayer(DalamudApi.ObjectTable, _anchorName).Actor;
     }
 
     private bool IsUsable(IGameObject? actor) =>

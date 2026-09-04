@@ -107,4 +107,6 @@ public enum IpcMessageType {
     PauseLuaScript,
     ResumeLuaScript,
     StopManagedMovement,
+    LuaSharedVariable,
+    LuaParticipantMessage,
 }

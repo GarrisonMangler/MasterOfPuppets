@@ -41,8 +41,8 @@ public static partial class MopCommandsHelper {
             * $anchor is supplied to Lua as both mop.get_var("anchor") and mop.get_run_target().
             * The sender's client automatically supplies the script hash, shared seed, and synchronized start time.
             * Every participating PC must have the same script and Participant Formation and must listen to this Chat Sync channel.
-            * Receiving PCs must trust the sender under Settings > Trusted Lua Conductors; exact Name@World entries are required.
-            * Optional PREPARE/READY/GO formation staging is configured beside the conductor policy and must be enabled consistently on every PC.
+            * Lua commands use the normal Chat Sync channel and optional sender-whitelist settings; no separate conductor authorization is required.
+            * Optional PREPARE/READY/GO formation staging is configured under Settings > Lua Synchronization and must be enabled consistently on every PC.
             * Replace /cwl2 with the channel configured in MoP Settings.
             """
         },
@@ -55,7 +55,7 @@ public static partial class MopCommandsHelper {
             """,
             Notes = """
             * Stops active Lua scripts on every MoP client listening to the Chat Sync channel.
-            * Receiving PCs apply the same Trusted Lua Conductors policy as mopluarun.
+            * Uses the normal Chat Sync channel and optional sender-whitelist settings, like moprun and mopstop.
             * Replace /cwl2 with the channel configured in MoP Settings.
             """
         },

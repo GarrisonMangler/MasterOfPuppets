@@ -205,8 +205,6 @@ internal class Configuration : IPluginConfiguration {
     public bool UseChatCommandSenderWhitelist { get; set; } = false;
     public List<string> ChatCommandSenderWhitelist { get; set; } = new();
     public string DefaultChatSyncPrefix { get; set; } = "/p";
-    public string LuaConductorTrustMode { get; set; } = LuaScripting.Synchronization.LuaConductorTrustModes.SelfOnly;
-    public List<string> LuaTrustedConductors { get; set; } = new();
     public bool LuaDistributedReadinessEnabled { get; set; } = false;
     public int LuaReadinessTimeoutSeconds { get; set; } = 30;
     public string LuaReadinessTimeoutPolicy { get; set; } = "abort";

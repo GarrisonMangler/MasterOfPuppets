@@ -20,26 +20,38 @@ public sealed class LuaRunCoordinationState : ILuaCoordinationFacade {
     private readonly Dictionary<string, LuaSharedVariableSnapshot> _variables = new(StringComparer.OrdinalIgnoreCase);
     private readonly Queue<LuaParticipantMessageSnapshot> _messages = new();
     private readonly Dictionary<ulong, long> _lastMessageSequence = new();
+    private readonly HashSet<Guid> _seenMessageIds = new();
+    private readonly Queue<Guid> _seenMessageOrder = new();
     private Func<string, string, long, LuaCoordinationResult>? _sendVariable;
     private Func<Guid, string, string, int, long, ulong, LuaCoordinationResult>? _sendMessage;
     private LuaEventHub? _events;
+    private ulong[] _participantContentIds;
     private long _localSequence;
+    private long _lastVariableTransportSequence;
+    private long _lastPublishedVariableSequence;
 
     public LuaRunCoordinationState(
         ulong localContentId,
         IReadOnlyList<ulong> participantContentIds,
         bool isConductor,
-        bool isDistributed = false) {
+        bool isDistributed = false,
+        ulong conductorContentId = 0) {
         LocalContentId = localContentId;
-        ParticipantContentIds = participantContentIds.Where(cid => cid != 0).Distinct().ToArray();
+        _participantContentIds = participantContentIds.Where(cid => cid != 0).Distinct().ToArray();
         IsConductor = isConductor;
         IsDistributed = isDistributed;
+        ConductorContentId = conductorContentId != 0
+            ? conductorContentId
+            : isConductor
+                ? localContentId
+                : _participantContentIds.FirstOrDefault();
     }
 
     public bool IsDistributed { get; }
     public bool IsConductor { get; }
     public ulong LocalContentId { get; }
-    public IReadOnlyList<ulong> ParticipantContentIds { get; }
+    public ulong ConductorContentId { get; }
+    public IReadOnlyList<ulong> ParticipantContentIds => _participantContentIds;
     public IReadOnlyList<LuaSharedVariableSnapshot> SharedVariables {
         get {
             lock (_sync)
@@ -55,6 +67,34 @@ public sealed class LuaRunCoordinationState : ILuaCoordinationFacade {
     }
 
     public void AttachEvents(LuaEventHub events) => _events = events ?? throw new ArgumentNullException(nameof(events));
+
+    public bool TryUpdateParticipantRoster(IReadOnlyList<ulong> participants, out string reason) {
+        ArgumentNullException.ThrowIfNull(participants);
+        var normalized = participants.Where(cid => cid != 0).Distinct().ToArray();
+        lock (_sync) {
+            if (normalized.Length is 0 or > 32
+                || _participantContentIds.Length == 0
+                || normalized[0] != _participantContentIds[0]) {
+                reason = "participant roster update must preserve the conductor in slot zero and contain at most 32 recipients";
+                return false;
+            }
+            _participantContentIds = normalized;
+            // A conductor-authenticated rebroadcast is the admission boundary for
+            // restarted/rejoined local clients, whose process-local sequence starts
+            // again at one. Message IDs remain replay-cached across the boundary.
+            _lastMessageSequence.Clear();
+            _lastVariableTransportSequence = 0;
+        }
+        reason = string.Empty;
+        return true;
+    }
+
+    public bool TryGetParticipantSlot(ulong contentId, out int slot) {
+        lock (_sync) {
+            slot = Array.IndexOf(_participantContentIds, contentId);
+            return slot >= 0;
+        }
+    }
 
     public LuaCoordinationResult SetShared(string key, string value) {
         key = ValidateText(key, MaximumNameBytes, "shared variable key", allowEmpty: false);
@@ -132,8 +172,13 @@ public sealed class LuaRunCoordinationState : ILuaCoordinationFacade {
             reason = "shared variable sequence and sender are required";
             return false;
         }
+        if (ConductorContentId != 0 && senderContentId != ConductorContentId) {
+            reason = "shared variable sender is not the run conductor";
+            return false;
+        }
+        long publishedSequence;
         lock (_sync) {
-            if (_variables.TryGetValue(key, out var current) && sequence <= current.Sequence) {
+            if (sequence <= _lastVariableTransportSequence) {
                 reason = "shared variable update is duplicate or out of order";
                 return false;
             }
@@ -141,12 +186,15 @@ public sealed class LuaRunCoordinationState : ILuaCoordinationFacade {
                 reason = "shared variable capacity is exhausted";
                 return false;
             }
-            _variables[key] = new LuaSharedVariableSnapshot(key, value, sequence, senderContentId, receivedAt);
+            _lastVariableTransportSequence = sequence;
+            publishedSequence = ++_lastPublishedVariableSequence;
+            _variables[key] = new LuaSharedVariableSnapshot(
+                key, value, publishedSequence, senderContentId, receivedAt);
         }
         _events?.Publish("sync.variable", new Dictionary<string, string> {
             ["key"] = key,
             ["value"] = value,
-            ["sequence"] = sequence.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["sequence"] = publishedSequence.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["sender_content_id"] = senderContentId.ToString(System.Globalization.CultureInfo.InvariantCulture),
         });
         reason = string.Empty;
@@ -164,12 +212,24 @@ public sealed class LuaRunCoordinationState : ILuaCoordinationFacade {
             reason = "participant message schema version is invalid";
             return false;
         }
+        if (!_participantContentIds.Contains(message.SenderContentId)) {
+            reason = "participant message sender is outside the run roster";
+            return false;
+        }
         lock (_sync) {
+            if (_seenMessageIds.Contains(message.MessageId)) {
+                reason = "participant message ID was already received";
+                return false;
+            }
             if (_lastMessageSequence.TryGetValue(message.SenderContentId, out var last) && message.Sequence <= last) {
                 reason = "participant message is duplicate or out of order";
                 return false;
             }
             _lastMessageSequence[message.SenderContentId] = message.Sequence;
+            _seenMessageIds.Add(message.MessageId);
+            _seenMessageOrder.Enqueue(message.MessageId);
+            while (_seenMessageOrder.Count > MaximumMessages * 2)
+                _seenMessageIds.Remove(_seenMessageOrder.Dequeue());
             if (message.TargetContentId != 0 && message.TargetContentId != LocalContentId) {
                 reason = string.Empty;
                 return true;

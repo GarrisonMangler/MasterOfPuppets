@@ -7,6 +7,28 @@ using Xunit;
 
 public class SimpleInputMovementTests {
     [Theory]
+    [InlineData(false, 0u, 0u, false, false, false)]
+    [InlineData(false, 7u, 0u, false, false, true)]
+    [InlineData(false, 0u, 7u, false, false, true)]
+    [InlineData(true, 0u, 0u, false, false, true)]
+    [InlineData(false, 0u, 0u, true, false, true)]
+    [InlineData(false, 0u, 0u, false, true, true)]
+    public void PersistentEmoteDetection_UsesActiveControllerStateWithoutTimelineHistory(
+        bool isLoopMode,
+        uint baseOverride,
+        uint lipsOverride,
+        bool controllerReportsEmoting,
+        bool controllerReportsLoop,
+        bool expected) {
+        Assert.Equal(expected, SimpleInputMovement.HasCancelableEmoteState(
+            isLoopMode,
+            baseOverride,
+            lipsOverride,
+            controllerReportsEmoting,
+            controllerReportsLoop));
+    }
+
+    [Theory]
     [InlineData(SimpleMovementMode.Natural, true)]
     [InlineData(SimpleMovementMode.Continuous, false)]
     [InlineData(SimpleMovementMode.Precise, false)]

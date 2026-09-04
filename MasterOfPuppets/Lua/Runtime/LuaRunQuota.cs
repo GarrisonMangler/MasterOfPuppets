@@ -9,10 +9,12 @@ public sealed class LuaRunQuota {
     private readonly object _lock = new();
     private readonly LuaRuntimeLimits _limits;
     private readonly Queue<long> _recentChatActions = new();
+    private readonly Queue<long> _recentGameActions = new();
     private int _logLines;
     private int _logBytes;
     private int _pendingWaiters;
     private int _chatActions;
+    private int _gameActions;
 
     public LuaRunQuota(LuaRuntimeLimits? limits = null) {
         _limits = (limits ?? LuaRuntimeLimits.Default).Validate();
@@ -58,9 +60,27 @@ public sealed class LuaRunQuota {
         }
     }
 
+    public void ConsumeGameAction() {
+        lock (_lock) {
+            if (_gameActions >= _limits.MaximumGameActions)
+                throw new LuaQuotaExceededException("game-action", "Lua game-action run quota exceeded.");
+
+            var now = Environment.TickCount64;
+            var oldestAllowed = now - (long)_limits.GameActionWindow.TotalMilliseconds;
+            while (_recentGameActions.TryPeek(out var observed) && observed <= oldestAllowed)
+                _recentGameActions.Dequeue();
+            if (_recentGameActions.Count >= _limits.MaximumGameActionsPerWindow)
+                throw new LuaQuotaExceededException(
+                    "game-action-rate",
+                    $"Lua game-action rate exceeds {_limits.MaximumGameActionsPerWindow} per {_limits.GameActionWindow.TotalSeconds:0.###} seconds.");
+            _recentGameActions.Enqueue(now);
+            _gameActions++;
+        }
+    }
+
     public LuaQuotaSnapshot Snapshot() {
         lock (_lock)
-            return new LuaQuotaSnapshot(_logLines, _logBytes, _pendingWaiters, _chatActions);
+            return new LuaQuotaSnapshot(_logLines, _logBytes, _pendingWaiters, _chatActions, _gameActions);
     }
 
     private void ExitWaiter() {
@@ -77,7 +97,7 @@ public sealed class LuaRunQuota {
     }
 }
 
-public readonly record struct LuaQuotaSnapshot(int LogLines, int LogUtf8Bytes, int PendingWaiters, int ChatActions);
+public readonly record struct LuaQuotaSnapshot(int LogLines, int LogUtf8Bytes, int PendingWaiters, int ChatActions, int GameActions);
 
 public sealed class LuaQuotaExceededException : InvalidOperationException {
     public LuaQuotaExceededException(string quota, string message) : base(message) => Quota = quota;

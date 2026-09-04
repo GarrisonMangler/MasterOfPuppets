@@ -113,9 +113,9 @@ public sealed class LegacyLuaCapabilityProvider : ILuaCapabilityProvider {
 
         mop["names_match"] = new LuaFunction((call, _) =>
             new ValueTask<int>(call.Return(
-                FormationCharacterName.MatchScore(
+                FormationCharacterName.Matches(
                     call.GetArgument<string>(0),
-                    call.GetArgument<string>(1)) >= 0)));
+                    call.GetArgument<string>(1)))));
 
         mop["set_anchor"] = new LuaFunction(async (call, cancellationToken) => {
             if (context.SetAnchor == null)
@@ -144,7 +144,14 @@ public sealed class LegacyLuaCapabilityProvider : ILuaCapabilityProvider {
                 Precision: ReadNumber(options, "precision", 0.1f),
                 BrakeAtPosition: ReadBoolean(options, "brake_at_position", true),
                 PursuitPrediction: ReadBoolean(options, "pursuit_prediction", false),
-                ImmediateSteering: ReadBoolean(options, "immediate_steering", true)).Validate();
+                ImmediateSteering: ReadBoolean(options, "immediate_steering", true),
+                RigidFormation: ReadBoolean(options, "rigid_formation", false),
+                FormationRadius: ReadNumber(options, "formation_radius", 0f),
+                FormationNeighbors: ReadFormationNeighbors(options),
+                NeighborCorrectionWeight: ReadNumber(options, "neighbor_correction", 0.25f),
+                MaximumNeighborCorrection: ReadNumber(options, "maximum_neighbor_correction", 0.35f),
+                MirrorWalkRun: ReadBoolean(options, "mirror_walk_run", false),
+                MirrorSprint: ReadBoolean(options, "mirror_sprint", false)).Validate();
             await context.FollowActor(request, cancellationToken);
             return call.Return();
         });
@@ -212,6 +219,29 @@ public sealed class LegacyLuaCapabilityProvider : ILuaCapabilityProvider {
                 anchors.Add(anchor);
         }
         return anchors;
+    }
+
+    private static IReadOnlyList<LuaFormationNeighbor> ReadFormationNeighbors(LuaTable options) {
+        if (!options.TryGetValue("neighbors", out var value)
+            || !value.TryRead<LuaTable>(out var neighborsTable))
+            return [];
+
+        var neighbors = new List<LuaFormationNeighbor>(Math.Min(4, neighborsTable.ArrayLength));
+        for (var index = 1; index <= neighborsTable.ArrayLength; index++) {
+            if (!neighborsTable[index].TryRead<LuaTable>(out var neighbor))
+                throw new ArgumentException("follow_actor neighbors must contain option tables");
+            if (!neighbor.TryGetValue("name", out var nameValue)
+                || !nameValue.TryRead<string>(out var name)
+                || string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("follow_actor neighbor name cannot be empty");
+            neighbors.Add(new LuaFormationNeighbor(
+                name.Trim(),
+                new Vector3(
+                    ReadNumber(neighbor, "offset_x", 0f),
+                    ReadNumber(neighbor, "offset_y", 0f),
+                    ReadNumber(neighbor, "offset_z", 0f))));
+        }
+        return neighbors;
     }
 
     private static float ReadNumber(LuaTable options, string key, float fallback) {

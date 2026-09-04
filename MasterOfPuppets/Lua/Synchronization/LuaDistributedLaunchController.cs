@@ -103,7 +103,8 @@ internal sealed class LuaDistributedLaunchController {
                 localCid,
                 envelope.ParticipantCids,
                 localCid == conductorCid,
-                isDistributed: true));
+                isDistributed: true,
+                conductorContentId: conductorCid));
         _pending.Add(runToken, pending);
         pending.Coordination.ConfigureTransport(
             (key, value, sequence) => SendSharedVariable(pending, key, value, sequence),

@@ -14,6 +14,7 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
     private readonly ForwardInputMovementController _forwardInput;
     private readonly FormationTargetTracker _tracker = new();
     private float? _faceDirection;
+    private float _precision;
     private float? _lastIssuedFormationFacing;
     private bool _useFormationRelativeMovement;
     private bool _usePursuitTarget;
@@ -33,6 +34,7 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
     public void Start(SimpleMovementContext context) {
         _tracker.Reset(context.Destination, Environment.TickCount64);
         _faceDirection = context.FaceDirection;
+        _precision = context.Precision;
         _lastIssuedFormationFacing = null;
         _useFormationRelativeMovement = context.UseFormationRelativeMovement;
         _usePursuitTarget = context.UsePursuitTarget;
@@ -45,12 +47,14 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
 
     public void UpdateTarget(
         Vector3 destination,
+        float precision,
         float? faceDirection,
         bool useFormationRelativeMovement,
         bool usePursuitTarget,
         bool allowHoldWhileTargetMoving,
         bool rateLimitTravelFacing) {
         _tracker.UpdateTarget(destination, Environment.TickCount64);
+        _precision = precision;
         _faceDirection = faceDirection;
         _useFormationRelativeMovement = useFormationRelativeMovement;
         _usePursuitTarget = usePursuitTarget;
@@ -58,12 +62,15 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
         _rateLimitTravelFacing = rateLimitTravelFacing;
     }
 
+    public bool IsSlotMoving => _tracker.IsSlotMoving;
+    public bool IsIssuingMovement => _forwardInput.Direction != MovementDirection.None;
+
     public SimpleMovementUpdateResult Update(SimpleMovementContext context, Vector3 playerPosition) {
         var slotMoving = _tracker.IsSlotMoving;
         var distance = playerPosition.Distance2D(_tracker.Target);
         _holding = FormationTargetTracker.ShouldHold(
             distance,
-            context.Precision,
+            _precision,
             _holding,
             slotMoving && !_allowHoldWhileTargetMoving);
         if (_holding) {
@@ -153,5 +160,6 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
         _rateLimitTravelFacing = false;
         _relativeMovementDirection = MovementDirection.None;
         _lastSteeringUpdateMs = 0;
+        _precision = 0f;
     }
 }

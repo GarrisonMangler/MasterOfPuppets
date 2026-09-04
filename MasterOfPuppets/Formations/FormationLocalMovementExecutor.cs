@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using System.Numerics;
 
+using MasterOfPuppets.Extensions.Dalamud;
 using MasterOfPuppets.Movement;
 
 namespace MasterOfPuppets.Formations;
@@ -279,4 +281,92 @@ public static class FormationLocalMovementExecutor {
             or FormationAnchorFailureKind.NoFocusTargetSelected
             or FormationAnchorFailureKind.AnchorNameEmpty
             or FormationAnchorFailureKind.AnchorNotVisible;
+
+    public static bool ExecuteFormationPetPlace(
+        Plugin plugin,
+        string formationName,
+        int destinationPointIndex,
+        FormationAnchorReference anchor,
+        string logPrefix = "moppetformationplace",
+        FormationAnchorReference? fallbackAnchor = null) {
+        if (!TryGetFormation(plugin, formationName, logPrefix, out var formation))
+            return false;
+
+        if (destinationPointIndex < 0 || destinationPointIndex >= formation.Points.Count) {
+            DalamudApi.PluginLog.Warning($"[{logPrefix}] point {destinationPointIndex + 1} is not valid for formation \"{formationName}\"");
+            return false;
+        }
+
+        if (!FormationAnchorResolver.TryResolve(plugin, formation, anchor, out var resolvedAnchor, out var anchorFailure, out var failureKind)) {
+            if (fallbackAnchor != null && FormationAnchorResolver.TryResolve(plugin, formation, fallbackAnchor, out var fallbackResolved, out _, out _)) {
+                resolvedAnchor = fallbackResolved;
+            } else {
+                LogAnchorFailure(logPrefix, anchorFailure, failureKind);
+                return false;
+            }
+        }
+
+        var localCid = DalamudApi.PlayerState.ContentId;
+        var isPointOneUnassigned = formation.Points.Count > 0
+            && (formation.Points[0].Cids == null || formation.Points[0].Cids.Count == 0)
+            && (formation.Points[0].GroupIds == null || formation.Points[0].GroupIds.Count == 0);
+        var assignedAnchorPointIndex = (!isPointOneUnassigned && resolvedAnchor.ContentId.HasValue)
+            ? FormationExecution.GetAssignedPointIndex(formation, resolvedAnchor.ContentId.Value, plugin.Config.CidsGroups)
+            : -1;
+        var anchorPointIndex = ResolveAnchorPointIndex(formation, plugin.Config.CidsGroups, anchor, resolvedAnchor.ContentId, localCid);
+
+        var normalizeAnchorRotation = ShouldNormalizeAssignedAnchorRotation(anchor, resolvedAnchor.ContentId, localCid, assignedAnchorPointIndex);
+        var anchorRotation = ResolveAnchorFrameRotation(
+            formation,
+            anchorPointIndex,
+            resolvedAnchor.Rotation,
+            normalizeAnchorRotation);
+
+        var move = FormationPointMovement.BuildAnchoredWorldMove(
+            formation,
+            destinationPointIndex,
+            anchorPointIndex,
+            resolvedAnchor.Position,
+            anchorRotation);
+        if (move == null) {
+            DalamudApi.PluginLog.Warning($"[{logPrefix}] point {destinationPointIndex + 1} is not valid for formation \"{formation.Name}\"");
+            return false;
+        }
+
+        var destPoint = formation.Points[destinationPointIndex];
+        var destCids = destPoint.GetEffectiveCids(plugin.Config.CidsGroups);
+
+        // Determine who is at the destination point.
+        // Each client targets that character and uses /petaction place <t> to move its own carbuncle
+        // to that character's world position. This is the only mechanism FFXIV supports for placing
+        // a battle pet at an arbitrary world location.
+        Dalamud.Game.ClientState.Objects.Types.IGameObject? destActor = null;
+        bool isSelf = destCids.Contains(localCid);
+
+        if (!isSelf) {
+            var destinationNames = plugin.Config.Characters
+                .Where(character => destCids.Contains(character.Cid))
+                .Select(character => character.Name)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .ToArray();
+
+            foreach (var obj in DalamudApi.ObjectTable) {
+                if (obj == null) continue;
+                var actorName = obj.GetPlayerNameWorld() ?? obj.Name.TextValue;
+                if (destinationNames.Any(configName => FormationCharacterName.Matches(configName, actorName))) {
+                    destActor = obj;
+                    break;
+                }
+            }
+
+            if (destActor == null) {
+                DalamudApi.PluginLog.Debug($"[{logPrefix}] dest point {destinationPointIndex + 1} character not in object table — skipping expected=[{string.Join(", ", destinationNames)}]");
+                return true;
+            }
+        }
+
+        GameActionManager.PlacePet(move.Value.Position, destActor, isSelf);
+        DalamudApi.PluginLog.Debug($"[{logPrefix}] placed pet at formation=\"{formation.Name}\" point={destinationPointIndex + 1} isSelf={isSelf} target='{destActor?.Name}'");
+        return true;
+    }
 }

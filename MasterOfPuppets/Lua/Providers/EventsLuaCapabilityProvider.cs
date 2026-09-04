@@ -11,14 +11,23 @@ namespace MasterOfPuppets.LuaScripting.Providers;
 public sealed class EventsLuaCapabilityProvider : ILuaCapabilityProvider {
     private static readonly LuaCapabilityDescriptor Capability = new(
         "mop.events",
-        "2.0.0",
-        "Bounded sequential lifecycle, chat, target, condition, and participant visibility events.",
+        "3.0.0",
+        "Bounded non-destructive filtered events, actor-scoped reactions, and opt-in raw world streams.",
         ["events.observe"]);
 
     public LuaCapabilityDescriptor Descriptor => Capability;
 
     public void Register(LuaApiRegistrationContext registration) {
         var events = registration.GetOrCreateModule("events");
+        events["subscribe"] = new LuaFunction((call, _) => {
+            var name = RequiredString(call, 0);
+            Hub(registration).RegisterInterest(name);
+            return new ValueTask<int>(call.Return(true));
+        });
+        events["unsubscribe"] = new LuaFunction((call, _) => {
+            var name = RequiredString(call, 0);
+            return new ValueTask<int>(call.Return(Hub(registration).UnregisterInterest(name)));
+        });
         events["poll"] = new LuaFunction((call, _) => {
             var name = OptionalString(call, 0);
             return new ValueTask<int>(call.Return(Hub(registration).TryRead(name, out var item)
@@ -60,7 +69,12 @@ public sealed class EventsLuaCapabilityProvider : ILuaCapabilityProvider {
         return value.Type == LuaValueType.Nil ? null : value.Read<string>();
     }
 
-    private static LuaTable ToLua(LuaHostEvent item) {
+    private static string RequiredString(LuaFunctionExecutionContext call, int index) {
+        var value = call.GetArgument<string>(index).Trim();
+        return value.Length > 0 ? value : throw new ArgumentException("event name cannot be empty");
+    }
+
+    internal static LuaTable ToLua(LuaHostEvent item) {
         var data = new LuaTable();
         foreach (var (key, value) in item.Data)
             data[key] = value;

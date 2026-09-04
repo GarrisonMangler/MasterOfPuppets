@@ -104,10 +104,10 @@ public static class LuaParticipantResolver {
             return false;
 
         foreach (var actor in DalamudApi.ObjectTable) {
-            if (actor is not { Address: not 0 })
+            if (actor is not { Address: not 0 } || actor.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc)
                 continue;
             var actorName = actor.GetPlayerNameWorld() ?? actor.Name.TextValue;
-            if (FormationCharacterName.MatchScore(configuredName, actorName) >= 0)
+            if (FormationCharacterName.Matches(configuredName, actorName))
                 return true;
         }
 

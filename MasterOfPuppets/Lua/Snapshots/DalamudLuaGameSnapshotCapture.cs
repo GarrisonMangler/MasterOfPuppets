@@ -7,7 +7,12 @@ using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Game.ClientState.Objects.Types;
 
 using MasterOfPuppets.Extensions.Dalamud;
-using MasterOfPuppets.Formations;
+using MasterOfPuppets.Movement;
+using MasterOfPuppets.LuaScripting.Watches;
+
+using NativeBattleChara = FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara;
+using CharacterModes = FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterModes;
+using EmoteController = FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace MasterOfPuppets.LuaScripting.Snapshots;
 
@@ -93,14 +98,9 @@ internal static class DalamudLuaGameSnapshotCapture {
             (runTargetEntityId != 0 && runTargetEntityId != 0xE0000000 && actor.EntityId == runTargetEntityId)
             || (runTargetObjectId != 0 && actor.GameObjectId == runTargetObjectId));
         if (runTarget == null && !string.IsNullOrWhiteSpace(runTargetName))
-            runTarget = DalamudApi.ObjectTable
-                .Where(actor => actor is { Address: not 0 })
-                .OrderByDescending(actor => FormationCharacterName.MatchScore(
-                    runTargetName,
-                    actor.GetPlayerNameWorld() ?? actor.Name.TextValue))
-                .FirstOrDefault(actor => FormationCharacterName.MatchScore(
-                    runTargetName,
-                    actor.GetPlayerNameWorld() ?? actor.Name.TextValue) >= 0);
+            runTarget = LuaActorQueryResolver.ResolvePlayer(
+                DalamudApi.ObjectTable,
+                runTargetName).Actor;
 
         var buddies = DalamudApi.BuddyList
             .Select(buddy => CaptureBuddy(buddy, "battle"))
@@ -174,29 +174,17 @@ internal static class DalamudLuaGameSnapshotCapture {
         IReadOnlyList<IGameObject>? worldActors) {
         if (worldActors == null || string.IsNullOrWhiteSpace(configuredName))
             return null;
-
-        IGameObject? bestMatch = null;
-        var bestScore = -1;
-        foreach (var actor in worldActors) {
-            if (actor is not { Address: not 0 })
-                continue;
-            var actorName = actor.GetPlayerNameWorld() ?? actor.Name.TextValue;
-            var score = FormationCharacterName.MatchScore(configuredName, actorName);
-            if (score <= bestScore)
-                continue;
-            bestMatch = actor;
-            bestScore = score;
-            if (score == int.MaxValue)
-                break;
-        }
-
-        return bestScore >= 0 ? bestMatch : null;
+        return LuaActorQueryResolver.ResolvePlayer(worldActors, configuredName).Actor;
     }
 
     private static IReadOnlyDictionary<string, bool> CaptureConditions() {
         var conditions = new Dictionary<string, bool>(ConditionEntries.Length, StringComparer.Ordinal);
         foreach (var (flag, name) in ConditionEntries)
-            conditions.Add(name, DalamudApi.Condition[flag]);
+            // Dalamud's ConditionFlag currently contains aliases that stringify
+            // to the same name (for example Mounted2). A snapshot is keyed by
+            // the public condition name, so aliases should overwrite rather
+            // than make every game-state capture fail with a duplicate key.
+            conditions[name] = DalamudApi.Condition[flag];
         return conditions;
     }
 
@@ -232,9 +220,111 @@ internal static class DalamudLuaGameSnapshotCapture {
             player.BasePiety);
     }
 
-    private static LuaActorSnapshot CaptureActor(IGameObject actor, ulong localId, string authority) {
+    /// <summary>
+    /// Captures the compact, allocation-free state consumed by actor watches.
+    /// Unlike <see cref="Capture"/>, this does not enumerate the object table or
+    /// materialize unrelated world, party, buddy, condition, or profile data.
+    /// </summary>
+    internal static unsafe LuaActorWatchState CaptureWatchState(IGameObject actor) {
+        ArgumentNullException.ThrowIfNull(actor);
         var character = actor as ICharacter;
         var battle = actor as IBattleChara;
+        var isLoaded = actor.Address != 0
+            && actor.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc
+            && character != null
+            && battle != null
+            && actor.EntityId is not (0 or 0xE0000000);
+        var native = isLoaded ? (NativeBattleChara*)actor.Address : null;
+        var companion = native == null ? null : native->CompanionData.CompanionObject;
+        var poseType = ResolvePoseType(native);
+        var classJobId = character?.ClassJob.RowId ?? 0;
+        if (classJobId == 0 && native != null)
+            classJobId = native->Character.CharacterData.ClassJob;
+        return new LuaActorWatchState(
+            actor.GameObjectId,
+            actor.EntityId,
+            actor.TargetObjectId,
+            actor.Position.X,
+            actor.Position.Y,
+            actor.Position.Z,
+            actor.IsTargetable,
+            actor.IsDead,
+            isLoaded,
+            false,
+            native != null
+                && actor.GameObjectId == DalamudApi.ObjectTable.LocalPlayer?.GameObjectId
+                && native->Character.IsJumping(),
+            0,
+            native == null ? 0u : native->Character.Mount.MountId,
+            companion == null ? 0u : companion->Character.BaseId,
+            native == null ? 0u : native->Character.EmoteController.EmoteId,
+            native == null ? 0UL : (ulong)native->Character.EmoteController.Target,
+            native != null && IsEmoteLooping(
+                native->Character.EmoteController.EmoteId,
+                native->Character.EmoteController.IsInEmoteLoop(),
+                native->Character.Mode is CharacterModes.EmoteLoop or CharacterModes.InPositionLoop),
+            (byte)poseType,
+            native == null ? (byte)0 : native->Character.EmoteController.CPoseState,
+            native == null ? 0u : native->Character.OrnamentData.OrnamentId,
+            native == null || native->Character.DrawData.GlassesIds.Length == 0
+                ? 0u
+                : native->Character.DrawData.GlassesIds[0],
+            HasStatus(battle, 50),
+            native != null && native->Character.IsWeaponDrawn,
+            character?.OnlineStatus.RowId ?? 0,
+            classJobId) {
+            IsHeadgearVisible = native != null && !native->Character.DrawData.IsHatHidden,
+            IsVisorToggled = native != null && native->Character.DrawData.IsVisorToggled,
+            IsWalking = actor.GameObjectId == DalamudApi.ObjectTable.LocalPlayer?.GameObjectId && SimpleMovementWalkState.IsWalking,
+        };
+    }
+
+    internal static bool IsEmoteLooping(
+        uint emoteId,
+        bool controllerReportsLoop,
+        bool modeReportsLoop) =>
+        emoteId != 0 && (controllerReportsLoop || modeReportsLoop);
+
+    private static bool HasStatus(IBattleChara? actor, uint statusId) {
+        if (actor == null)
+            return false;
+        foreach (var status in actor.StatusList) {
+            if (status.StatusId == statusId)
+                return true;
+        }
+        return false;
+    }
+
+    private static unsafe EmoteController.PoseType ResolvePoseType(NativeBattleChara* native) {
+        var poseType = native == null
+            ? EmoteController.PoseType.Idle
+            : native->Character.EmoteController.CurrentPoseType;
+        // A remote actor can expose 255 while unloading. Calling GetPoseKind
+        // in that state invokes a native function on an invalid transition
+        // and was the cause of the synchronized disconnect crash.
+        if (native != null && (byte)poseType == byte.MaxValue)
+            return EmoteController.PoseType.Idle;
+        return Enum.IsDefined(poseType) ? poseType : EmoteController.PoseType.Idle;
+    }
+
+    private static unsafe LuaActorSnapshot CaptureActor(IGameObject actor, ulong localId, string authority) {
+        var character = actor as ICharacter;
+        var battle = actor as IBattleChara;
+        var isLoaded = actor.Address != 0
+            && actor.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc
+            && character != null
+            && battle != null
+            && actor.EntityId is not (0 or 0xE0000000);
+        // VisibleActors contains every object kind, including aetherytes and
+        // event objects. Their addresses are valid but are not BattleChara
+        // instances, so never invoke Character native methods until the
+        // Dalamud interfaces and object kind establish that this is a PC.
+        var native = isLoaded ? (NativeBattleChara*)actor.Address : null;
+        var companion = native == null ? null : native->CompanionData.CompanionObject;
+        var poseType = ResolvePoseType(native);
+        var classJobId = character?.ClassJob.RowId ?? 0;
+        if (classJobId == 0 && native != null)
+            classJobId = native->Character.CharacterData.ClassJob;
         return new LuaActorSnapshot(
             actor.GetPlayerNameWorld() ?? actor.Name.TextValue,
             actor.GameObjectId == localId ? "local" : authority,
@@ -247,7 +337,28 @@ internal static class DalamudLuaGameSnapshotCapture {
             actor.GameObjectId == localId,
             actor.IsTargetable,
             actor.IsDead,
-            character?.ClassJob.RowId ?? 0,
+            isLoaded,
+            native != null
+                && actor.GameObjectId == localId
+                && native->Character.IsJumping(),
+            native == null ? 0u : native->Character.Mount.MountId,
+            companion == null ? 0u : companion->Character.BaseId,
+            native == null ? 0u : native->Character.EmoteController.EmoteId,
+            (native == null ? 0UL : (ulong)native->Character.EmoteController.Target)
+                .ToString(System.Globalization.CultureInfo.InvariantCulture),
+            native != null && (native->Character.EmoteController.IsInEmoteLoop()
+                || native->Character.Mode is CharacterModes.EmoteLoop or CharacterModes.InPositionLoop
+                || (native->Character.EmoteController.EmoteId != 0 && EmoteHelper.IsPersistent(native->Character.EmoteController.EmoteId))),
+            (byte)poseType,
+            native == null ? (byte)0 : native->Character.EmoteController.CPoseState,
+            native == null ? 0u : native->Character.OrnamentData.OrnamentId,
+            native == null || native->Character.DrawData.GlassesIds.Length == 0
+                ? 0u
+                : native->Character.DrawData.GlassesIds[0],
+            native != null && native->Character.IsWeaponDrawn,
+            character?.OnlineStatus.RowId ?? 0,
+            character?.OnlineStatus.Value.Name.ToString() ?? string.Empty,
+            classJobId,
             character?.Level ?? 0,
             character?.CurrentHp ?? 0,
             character?.MaxHp ?? 0,
@@ -262,6 +373,11 @@ internal static class DalamudLuaGameSnapshotCapture {
             battle?.CastActionId ?? 0,
             (battle?.CastTargetObjectId ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture),
             battle?.CurrentCastTime ?? 0f,
-            battle?.TotalCastTime ?? 0f);
+            battle?.TotalCastTime ?? 0f) {
+            IsHeadgearVisible = native != null && !native->Character.DrawData.IsHatHidden,
+            IsVisorToggled = native != null && native->Character.DrawData.IsVisorToggled,
+            IsWalking = actor.GameObjectId == localId && SimpleMovementWalkState.IsWalking,
+            IsMoving = false,
+        };
     }
 }

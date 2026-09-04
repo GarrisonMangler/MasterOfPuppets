@@ -1,4 +1,4 @@
-﻿using Xunit;
+using Xunit;
 using System.Collections.Generic;
 
 using MasterOfPuppets.Util;
@@ -215,5 +215,17 @@ public class ArgsParserTests
         Assert.Equal(2, result.Count);
         Assert.Equal("<t>", result["target"]);
         Assert.Equal("0.5", result["delay"]);
+    }
+
+    [Theory]
+    [InlineData("-var=\"Garrison Mangler@Sargatanas\"", "Garrison Mangler@Sargatanas")]
+    [InlineData("-var='Garrison Mangler@Sargatanas'", "Garrison Mangler@Sargatanas")]
+    [InlineData("-var=Garrison Mangler@Sargatanas", "Garrison Mangler@Sargatanas")]
+    public void ParseInlineVars_RawTargetName_CapturedAsAnchor(string flag, string expectedAnchor)
+    {
+        var result = ArgumentParser.ParseInlineVars(flag);
+
+        Assert.Single(result);
+        Assert.Equal(expectedAnchor, result["anchor"]);
     }
 }

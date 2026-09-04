@@ -542,6 +542,52 @@ public static partial class MopCommandsHelper {
         new MopAction {
             Category = MopActionCategory.MacroAction,
             SubCategory = MopActionSubCategory.Movement,
+            TextCommand = "/moppetplace X Y Z [anchor]",
+            SuggestionCommand = "/moppetplace 0 0 -1 target",
+            Example = """
+            Place pet 1 yalm behind your target:
+                /moppetplace 0 0 -1 target
+
+            Place pet 2 yalms in front of yourself:
+                /moppetplace 0 0 2 self
+
+            Place pet relative to a specific character:
+                /moppetplace 1 0 0 "Tank Name@World"
+            """,
+            Notes = """
+            Places your summoned pet at 3D coordinates relative to the specified anchor without switching targets or clicking.
+            X (+Left | -Right)
+            Y (+Up | -Down)
+            Z (+Forward | -Back)
+            Anchor options: target, self, ftarget, or "Character Name@World".
+            Default anchor: target if one is selected, otherwise self.
+            """
+        },
+        new MopAction {
+            Category = MopActionCategory.MacroAction,
+            SubCategory = MopActionSubCategory.Movement,
+            TextCommand = "/moppetformationplace \"Formation Name\" <pointNumber> [anchor=self|target|ftarget|\"Character Name@World\"]",
+            SuggestionCommand = "/moppetformationplace \"Formation Name\" 1 anchor=self",
+            Example = """
+            Carbuncle Rodeo circuit using a saved formation:
+                /moppetformationplace "Rodeo" 1 anchor=self
+                /mopwait 0.25
+                /moppetformationplace "Rodeo" 2 anchor=self
+                /mopwait 0.25
+                /moppetformationplace "Rodeo" 3 anchor=self
+                /mopwait 0.25
+                /moploop
+            """,
+            Notes = """
+            Places your summoned pet directly at one saved formation point using point 1 as the origin/anchor.
+            Point numbers are 1-based.
+            Anchor options: self, target, ftarget, or "Character Name@World".
+            Eliminates the need to target waypoint puppet characters to move your pet along a path.
+            """
+        },
+        new MopAction {
+            Category = MopActionCategory.MacroAction,
+            SubCategory = MopActionSubCategory.Movement,
             TextCommand = "/mopstopmove",
             SuggestionCommand = "/mopstopmove",
             Example = """

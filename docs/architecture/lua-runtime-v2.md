@@ -33,13 +33,16 @@ crosses into a run.
 - `LuaCapabilityRegistry` discovers parameterless providers from the plugin
   assembly and rejects duplicate capability names. Adding a provider does not
   require editing the runner.
-- `RuntimeLuaCapabilityProvider` exposes API version 2.0 and capability/runtime
+- `RuntimeLuaCapabilityProvider` exposes API version 4.0 and capability/runtime
   introspection.
 - `LegacyLuaCapabilityProvider` preserves all 18 original flat functions.
 - Non-empty capability declarations allowlist providers per run; empty
   declarations retain the legacy all-provider compatibility mode.
-- `GameStateLuaCapabilityProvider` exposes immutable self, target, visible
-  actor, party, participant, player-profile, territory, and condition snapshots
+- `GameStateLuaCapabilityProvider` 4.0 exposes immutable self, target, visible
+  actor, party, participant, player-profile, territory, and condition snapshots,
+  plus shared arbitrary-player watches with monotonic revisions, cached
+  visibility/proximity/change/job waits, and source-scoped action, emote,
+  jump, Sprint, appearance, target, idle-pose, and weapon reactions
   captured on the framework thread. `AutomationLuaCapabilityProvider` composes existing macro
   and formation managers with explicit execution scope.
 - Safe base, math, string, table, bitwise, and coroutine libraries are open.
@@ -60,9 +63,9 @@ crosses into a run.
   Protocol envelope v6 verifies the complete schema-v2 contract hash, including
   source, modules, capabilities, resources, typed parameters, and stable ID. It
   also carries replay-protected message identity and creation time.
-- Cross-PC Lua control uses an exact `name@world` conductor policy: self-only by
-  default, or an explicit allowlist. A bounded replay window rejects duplicate,
-  stale, future-dated, and malformed control envelopes.
+- Cross-PC Lua control uses the normal Chat Sync channel and optional sender
+  whitelist, without separate conductor authorization. A bounded replay window
+  rejects duplicate, stale, future-dated, and malformed control envelopes.
 - The pure distributed protocol core models authoritative rosters,
   PREPARE/STAGING/READY/GO phases, settled-position readiness and regression,
   explicit timeout policies, heartbeats, participant terminal state, and
@@ -73,7 +76,7 @@ crosses into a run.
   participant messages, heartbeat,
   ACK/NACK, stop, completion, and error messages. Its 32-CID PREPARE frame is
   verified below the 500-byte chat command limit. Internal Chat Sync handlers
-  enforce sender/CID identity, conductor trust, replay protection, roster
+  enforce sender/CID identity, run ownership, replay protection, roster
   membership, and coordinator phase ordering; a bounded registry feeds
   participant diagnostics to the Scripts window. An opt-in public launch bridge
   stages the local formation slot under a temporary resource lease, emits
@@ -81,8 +84,9 @@ crosses into a run.
   reports heartbeats/terminal state, and continuously filters conductor clock
   offset. The corrected shared time feeds Lua runtime elapsed time and movement
   trajectory timestamps. It defaults off until live validation.
-- `mop.events` exposes a per-run bounded typed stream with non-blocking poll,
-  cancellable waits, overflow accounting, and automatic disposal. Producers do
+- `mop.events` 3.0 exposes a per-run bounded typed stream with non-blocking poll,
+  cancellable non-destructive filters, overflow accounting, opt-in raw
+  high-volume streams, and automatic disposal. Producers do
   not invoke Lua directly. A throttled pure snapshot differ emits target,
   condition, and participant visibility changes in addition to lifecycle and
   chat events. Automatic event observation uses a narrow framework-thread
@@ -90,9 +94,11 @@ crosses into a run.
   actor snapshot is built only for an explicit game-state API request. Distributed
   launch work runs at 20 Hz and session timeout housekeeping at 4 Hz rather than
   allocating at render rate.
-- `mop.actions` adds validated single-line commands and typed action/general
-  action/item, gearset, walk-mode, and movement-stop operations with explicit
-  local/current-PC scope, resource leases, and the centralized action quota.
+- `mop.actions` 4.0 adds validated single-line commands, typed action/general
+  action/item operations, local jump/sprint helpers, script-selected exact
+  gearsets/jobs, appearance and target operations, walk mode, and movement stop
+  with explicit local/current-PC scope, resource leases, and the centralized
+  action quota.
 - Explicit multi-run instances provide deterministic IDs, lifecycle history,
   pause/resume/stop/restart, structured errors, instruction/stack/duration
   limits, and exclusive leases for movement, chat/actions, macro queues,

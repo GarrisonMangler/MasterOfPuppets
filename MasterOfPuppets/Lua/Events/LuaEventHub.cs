@@ -26,20 +26,22 @@ public readonly record struct LuaEventHubStatistics(
 /// </summary>
 public sealed class LuaEventHub : IDisposable {
     public const int DefaultCapacity = 256;
-    private readonly Channel<LuaHostEvent> _channel;
+    private readonly object _sync = new();
+    private readonly LinkedList<LuaHostEvent> _queue = new();
+    private readonly HashSet<string> _interests = new(StringComparer.Ordinal);
+    private readonly Channel<bool> _signals;
     private readonly int _capacity;
     private long _sequence;
     private long _published;
     private long _consumed;
     private long _dropped;
-    private int _queued;
-    private int _completed;
+    private bool _completed;
 
     public LuaEventHub(int capacity = DefaultCapacity) {
         if (capacity is <= 0 or > 4096)
             throw new ArgumentOutOfRangeException(nameof(capacity));
         _capacity = capacity;
-        _channel = Channel.CreateBounded<LuaHostEvent>(new BoundedChannelOptions(capacity) {
+        _signals = Channel.CreateBounded<bool>(new BoundedChannelOptions(capacity) {
             SingleReader = true,
             SingleWriter = false,
             FullMode = BoundedChannelFullMode.DropOldest,
@@ -49,74 +51,170 @@ public sealed class LuaEventHub : IDisposable {
 
     public bool Publish(string name, IReadOnlyDictionary<string, string>? data = null, DateTimeOffset? timestamp = null) {
         name = NormalizeName(name);
-        if (Volatile.Read(ref _completed) != 0)
-            return false;
         var payload = data == null
             ? new Dictionary<string, string>(StringComparer.Ordinal)
             : data.Where(pair => !string.IsNullOrWhiteSpace(pair.Key))
                 .Take(64)
                 .ToDictionary(pair => pair.Key.Trim(), pair => Limit(pair.Value, 2000), StringComparer.Ordinal);
-        var item = new LuaHostEvent(
-            Interlocked.Increment(ref _sequence),
-            name,
-            timestamp ?? DateTimeOffset.UtcNow,
-            payload);
-        if (!_channel.Writer.TryWrite(item))
-            return false;
-        Interlocked.Increment(ref _published);
-        var queued = Interlocked.Increment(ref _queued);
-        if (queued > _capacity) {
-            Interlocked.Exchange(ref _queued, _capacity);
-            Interlocked.Increment(ref _dropped);
+        lock (_sync) {
+            if (_completed)
+                return false;
+            var item = new LuaHostEvent(
+                ++_sequence,
+                name,
+                timestamp ?? DateTimeOffset.UtcNow,
+                payload);
+            if (_queue.Count == _capacity) {
+                _queue.RemoveFirst();
+                _dropped++;
+            }
+            _queue.AddLast(item);
+            _published++;
         }
+        _signals.Writer.TryWrite(true);
         return true;
     }
 
     public bool TryRead(string? name, out LuaHostEvent? item) {
         var filter = NormalizeFilter(name);
-        while (_channel.Reader.TryRead(out var candidate)) {
-            Interlocked.Decrement(ref _queued);
-            Interlocked.Increment(ref _consumed);
-            if (filter == null || candidate.Name.Equals(filter, StringComparison.Ordinal)) {
-                item = candidate;
-                return true;
+        if (filter != null)
+            RegisterInterest(filter);
+        return TryTake(filter, null, out item);
+    }
+
+    public bool TryRead(
+        string? name,
+        IReadOnlyDictionary<string, string>? dataEquals,
+        out LuaHostEvent? item) {
+        var filter = NormalizeFilter(name);
+        if (filter != null)
+            RegisterInterest(filter);
+        return TryTake(filter, NormalizeDataFilter(dataEquals), out item);
+    }
+
+    public async Task<LuaHostEvent?> ReadAsync(string? name, TimeSpan timeout, CancellationToken cancellationToken) {
+        return await ReadAsync(name, null, timeout, cancellationToken);
+    }
+
+    public async Task<LuaHostEvent?> ReadAsync(
+        string? name,
+        IReadOnlyDictionary<string, string>? dataEquals,
+        TimeSpan timeout,
+        CancellationToken cancellationToken) {
+        if (timeout <= TimeSpan.Zero || timeout > TimeSpan.FromMinutes(2))
+            throw new ArgumentOutOfRangeException(nameof(timeout));
+        var filter = NormalizeFilter(name);
+        var normalizedData = NormalizeDataFilter(dataEquals);
+        if (filter != null)
+            RegisterInterest(filter);
+        using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutSource.CancelAfter(timeout);
+        try {
+            while (true) {
+                if (TryTake(filter, normalizedData, out var item))
+                    return item;
+                if (!await _signals.Reader.WaitToReadAsync(timeoutSource.Token))
+                    return null;
+                _signals.Reader.TryRead(out _);
+            }
+        } catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) {
+            return null;
+        }
+    }
+
+    public LuaEventHubStatistics Snapshot() {
+        lock (_sync)
+            return new LuaEventHubStatistics(
+                _capacity,
+                _published,
+                _consumed,
+                _dropped,
+                _completed);
+    }
+
+    /// <summary>
+    /// Registers interest in a high-volume raw stream. Actor-scoped events do
+    /// not require registration; producers use this only to avoid broadcasting
+    /// unrelated world combat/emote traffic into every run.
+    /// </summary>
+    public void RegisterInterest(string name) {
+        name = NormalizeName(name);
+        lock (_sync) {
+            if (!_completed)
+                _interests.Add(name);
+        }
+    }
+
+    public bool UnregisterInterest(string name) {
+        name = NormalizeName(name);
+        lock (_sync)
+            return _interests.Remove(name);
+    }
+
+    public bool IsInterested(string name) {
+        name = NormalizeName(name);
+        lock (_sync)
+            return !_completed && _interests.Contains(name);
+    }
+
+    public void Dispose() {
+        lock (_sync) {
+            if (_completed)
+                return;
+            _completed = true;
+            _queue.Clear();
+            _interests.Clear();
+        }
+        _signals.Writer.TryComplete();
+    }
+
+    private bool TryTake(
+        string? filter,
+        IReadOnlyDictionary<string, string>? dataEquals,
+        out LuaHostEvent? item) {
+        lock (_sync) {
+            var node = _queue.First;
+            while (node != null) {
+                if ((filter == null || node.Value.Name.Equals(filter, StringComparison.Ordinal))
+                    && DataMatches(node.Value.Data, dataEquals)) {
+                    item = node.Value;
+                    _queue.Remove(node);
+                    _consumed++;
+                    return true;
+                }
+                node = node.Next;
             }
         }
         item = null;
         return false;
     }
 
-    public async Task<LuaHostEvent?> ReadAsync(string? name, TimeSpan timeout, CancellationToken cancellationToken) {
-        if (timeout <= TimeSpan.Zero || timeout > TimeSpan.FromMinutes(2))
-            throw new ArgumentOutOfRangeException(nameof(timeout));
-        var filter = NormalizeFilter(name);
-        using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutSource.CancelAfter(timeout);
-        try {
-            while (await _channel.Reader.WaitToReadAsync(timeoutSource.Token)) {
-                while (_channel.Reader.TryRead(out var candidate)) {
-                    Interlocked.Decrement(ref _queued);
-                    Interlocked.Increment(ref _consumed);
-                    if (filter == null || candidate.Name.Equals(filter, StringComparison.Ordinal))
-                        return candidate;
-                }
-            }
+    private static IReadOnlyDictionary<string, string>? NormalizeDataFilter(
+        IReadOnlyDictionary<string, string>? dataEquals) {
+        if (dataEquals == null || dataEquals.Count == 0)
             return null;
-        } catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) {
-            return null;
+        if (dataEquals.Count > 16)
+            throw new ArgumentOutOfRangeException(nameof(dataEquals), "event filters accept at most 16 fields");
+        var normalized = new Dictionary<string, string>(dataEquals.Count, StringComparer.Ordinal);
+        foreach (var (key, value) in dataEquals) {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("event filter keys cannot be empty", nameof(dataEquals));
+            normalized[key.Trim()] = value ?? string.Empty;
         }
+        return normalized;
     }
 
-    public LuaEventHubStatistics Snapshot() => new(
-        _capacity,
-        Volatile.Read(ref _published),
-        Volatile.Read(ref _consumed),
-        Volatile.Read(ref _dropped),
-        Volatile.Read(ref _completed) != 0);
-
-    public void Dispose() {
-        if (Interlocked.Exchange(ref _completed, 1) == 0)
-            _channel.Writer.TryComplete();
+    private static bool DataMatches(
+        IReadOnlyDictionary<string, string> data,
+        IReadOnlyDictionary<string, string>? expected) {
+        if (expected == null)
+            return true;
+        foreach (var (key, value) in expected) {
+            if (!data.TryGetValue(key, out var actual)
+                || !actual.Equals(value, StringComparison.Ordinal))
+                return false;
+        }
+        return true;
     }
 
     private static string NormalizeName(string? name) {

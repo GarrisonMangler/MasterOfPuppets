@@ -125,6 +125,30 @@ public class LuaRunLifecycleTests {
     }
 
     [Fact]
+    public async Task RuntimeGlobalStopAndEmoteResync_UseTypedHostCallbacks() {
+        string? stopReason = null;
+        (uint Id, bool Persistent, ulong Target)? emote = null;
+        using var runner = new LuaScriptRunner(new LuaScriptContext(
+            0, 1, 1, _ => { },
+            RequestGlobalStop: (reason, _) => {
+                stopReason = reason;
+                return Task.FromResult(true);
+            },
+            RequestEmoteResync: (id, persistent, target, _) => {
+                emote = (id, persistent, target);
+                return Task.FromResult(true);
+            }));
+
+        await runner.RunAsync("""
+            assert(mop.runtime.global_stop("target lost"))
+            assert(mop.runtime.broadcast_emote_resync(16, true, "123456789"))
+            """, CancellationToken.None);
+
+        Assert.Equal("target lost", stopReason);
+        Assert.Equal((16u, true, 123456789ul), emote);
+    }
+
+    [Fact]
     public void RunId_Is_Deterministic_Across_Participants_And_Changes_With_Identity() {
         const string hash = "6338b6ed83e7cb7db084db1caa3891f194e3e40f8e3a85d9d3cbc15d709774ff";
         var first = LuaScriptManager.CreateRunId(639233833003323930, 793223713, hash);

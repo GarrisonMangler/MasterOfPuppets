@@ -8,6 +8,7 @@ using MasterOfPuppets.LuaScripting.Snapshots;
 using MasterOfPuppets.LuaScripting.Automation;
 using MasterOfPuppets.LuaScripting.Events;
 using MasterOfPuppets.LuaScripting.Coordination;
+using MasterOfPuppets.LuaScripting.Watches;
 
 namespace MasterOfPuppets.LuaScripting;
 
@@ -46,4 +47,9 @@ public sealed record LuaScriptContext(
     Func<double>? GetTargetSpeed = null,
     Func<string, IReadOnlyList<string>?>? GetGroup = null,
     Func<bool>? IsWalking = null,
-    Func<(int Slot, int Count)>? GetVisibleRoster = null);
+    Func<(int Slot, int Count)>? GetVisibleRoster = null,
+    Func<string, CancellationToken, Task<LuaActorWatchRegistration>>? WatchActor = null,
+    Func<string, CancellationToken, Task<bool>>? UnwatchActor = null,
+    Func<string, CancellationToken, Task<bool>>? RequestGlobalStop = null,
+    Func<uint, bool, ulong, CancellationToken, Task<bool>>? RequestEmoteResync = null,
+    Func<LuaActorEventSources>? GetActorEventSources = null);

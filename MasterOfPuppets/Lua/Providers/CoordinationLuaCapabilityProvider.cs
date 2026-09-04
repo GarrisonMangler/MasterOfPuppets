@@ -12,7 +12,7 @@ namespace MasterOfPuppets.LuaScripting.Providers;
 public sealed class CoordinationLuaCapabilityProvider : ILuaCapabilityProvider {
     private static readonly LuaCapabilityDescriptor Capability = new(
         "mop.coordination",
-        "2.0.0",
+        "2.1.0",
         "Bounded conductor-owned shared variables and ordered versioned participant messages.",
         ["coordination.read", "coordination.write"]);
 
@@ -68,6 +68,15 @@ public sealed class CoordinationLuaCapabilityProvider : ILuaCapabilityProvider {
                 call.GetArgument<string>(1),
                 checked((int)schemaVersion),
                 targetContentId))));
+        });
+        messages["broadcast"] = new LuaFunction((call, _) => {
+            var state = State(registration);
+            var schemaVersion = call.ArgumentCount > 2 ? ReadInteger(call, 2, "schema_version") : 1;
+            return new ValueTask<int>(call.Return(ToLua(state.SendMessage(
+                call.GetArgument<string>(0),
+                call.GetArgument<string>(1),
+                checked((int)schemaVersion),
+                0))));
         });
         messages["poll"] = new LuaFunction((call, _) => {
             var topic = OptionalString(call, 0);

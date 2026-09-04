@@ -37,6 +37,8 @@ public class Plugin : IDalamudPlugin {
     internal FollowPath FollowPath { get; }
     internal SimpleInputMovement SimpleInputMovement { get; }
     internal FormationTrackingSession FormationTrackingSession { get; }
+    internal CombatActionObserver CombatActionObserver { get; }
+    internal EmoteObserver EmoteObserver { get; }
     internal LuaScriptManager LuaScriptManager { get; }
     internal MultiboxManager MultiboxManager { get; }
     internal GameRenderManager GameRenderManager { get; }
@@ -44,6 +46,7 @@ public class Plugin : IDalamudPlugin {
     internal KeyboardBroadcastManager KeyboardBroadcastManager { get; }
     internal AutoLoginManager AutoLoginManager { get; }
     internal ServerBarProvider ServerBarProvider { get; }
+    internal DateTime LastDiskReloadTime { get; set; } = DateTime.MinValue;
 
     public Plugin(IDalamudPluginInterface pluginInterface) {
         pluginInterface.Create<DalamudApi>();
@@ -59,6 +62,35 @@ public class Plugin : IDalamudPlugin {
                 // the entire plugin load.
                 DalamudApi.PluginLog.Warning(ex, "Could not persist newly packaged Lua scripts during startup");
             }
+        }
+        // Temporary single-macro delivery for shared dev-plugin reloads.
+        try {
+            if (TemporaryTornadoV2Installer.EnsureInstalled(Config.Macros)) {
+                DalamudApi.PluginLog.Information("[Tornado V2] Installed or upgraded the bundled square-clarity macro; automatic execution is disabled.");
+                Config.Save();
+            }
+        } catch (Exception ex) {
+            // A missing resource or transient storage lock must not prevent the
+            // plugin from loading. A successfully added macro remains in memory.
+            DalamudApi.PluginLog.Warning(ex, "[Tornado V2] Could not install or persist the temporary bundled macro during startup");
+        }
+        // Temporary add-only delivery for the requested pentagram macro pair.
+        try {
+            if (TemporaryPentagramInstaller.EnsureInstalled(Config.Macros)) {
+                Config.Save();
+                DalamudApi.PluginLog.Information("[Pentagram] Added missing bundled macros; existing copies were preserved and automatic execution is disabled.");
+            }
+        } catch (Exception ex) {
+            DalamudApi.PluginLog.Warning(ex, "[Pentagram] Could not install or persist the temporary bundled macros during startup");
+        }
+        // Temporary campfire formation and macro delivery through the shared DLL.
+        try {
+            if (TemporaryCampfireInstaller.EnsureInstalled(Config.Macros, Config.Formations)) {
+                Config.Save();
+                DalamudApi.PluginLog.Information("[Campfire] Installed missing pentagram items or repaired known v337 placement actions; custom copies were preserved and nothing was executed.");
+            }
+        } catch (Exception ex) {
+            DalamudApi.PluginLog.Warning(ex, "[Campfire] Could not install or persist the temporary bundled formation/macros during startup");
         }
         GameCameraManager.Initialize();
 
@@ -84,6 +116,8 @@ public class Plugin : IDalamudPlugin {
         MovementManager = new MovementManager(FollowPath);
         SimpleInputMovement = new SimpleInputMovement();
         FormationTrackingSession = new FormationTrackingSession(this);
+        CombatActionObserver = new CombatActionObserver();
+        EmoteObserver = new EmoteObserver();
         LuaScriptManager = new LuaScriptManager(this);
         MultiboxManager = new MultiboxManager(this);
         GameRenderManager = new GameRenderManager(this);
@@ -127,6 +161,7 @@ public class Plugin : IDalamudPlugin {
             ChatWatcher.LuaDistributedSessions.Tick(DateTimeOffset.UtcNow);
         KeyboardBroadcastManager.Update();
         IpcProvider.UpdateCharacterDataHeartbeat();
+        IpcProvider.UpdateMirrorDynamicLaunch();
 
         if (Config.AutoAcceptPartyInvite || Config.AutoAcceptTeleport) {
             var charConfig = Config.Characters.FirstOrDefault(c => c.Cid == DalamudApi.PlayerState.ContentId);
@@ -196,9 +231,14 @@ public class Plugin : IDalamudPlugin {
         try {
             var configFile = DalamudApi.PluginInterface.ConfigFile;
             if (configFile.Exists) {
-                var json = System.IO.File.ReadAllText(configFile.FullName);
+                string json;
+                using (var stream = new System.IO.FileStream(configFile.FullName, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite))
+                using (var reader = new System.IO.StreamReader(stream)) {
+                    json = reader.ReadToEnd();
+                }
+                LastDiskReloadTime = DateTime.UtcNow;
                 Config.UpdateFromJson(json);
-                IpcProvider.SyncConfiguration();
+                IpcProvider.SyncConfiguration(saveLocally: false);
                 DalamudApi.ShowNotification("Configuration reloaded from disk and synced", Dalamud.Interface.ImGuiNotification.NotificationType.Success, 5000);
             }
         } catch (Exception ex) {
@@ -217,6 +257,9 @@ public class Plugin : IDalamudPlugin {
         DalamudApi.PluginInterface.LanguageChanged -= OnLanguageChange;
         DalamudApi.Framework.Update -= OnFrameworkUpdate;
         GameCameraManager.Dispose();
+        CombatActionObserver.Dispose();
+        EmoteObserver.Dispose();
+        GameActionManager.Dispose();
         IpcProvider.Dispose();
         ChatWatcher.Dispose();
         // ChatLogMessageWatcher.Dispose();

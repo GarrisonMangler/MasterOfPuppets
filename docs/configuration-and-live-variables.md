@@ -25,15 +25,12 @@ All three commands are aliases for the same operation.
 
 This reloads configuration data. It does **not** reload a newly built plugin DLL; DLL changes still require the normal Dalamud/plugin hot-reload path.
 
-### 1.3 Lua conductor trust
+### 1.3 Lua synchronization
 
-Cross-PC `mopluarun` and `mopluastop` commands have a separate Lua conductor
-policy. `LuaConductorTrustMode` defaults to `self_only`. Set it to `allowlist`
-through **Settings > Trusted Lua Conductors** and populate
-`LuaTrustedConductors` with exact `Name@World` identities on receiving clients.
-The actual chat sender is authoritative; sender text inside an envelope cannot
-grant trust. Duplicate, stale, future-dated, and malformed Lua envelopes are
-rejected independently.
+Cross-PC `mopluarun` and `mopluastop` use the normal Chat Sync channel and
+optional sender-whitelist settings, just like macro commands. No separate Lua
+conductor authorization is required. Duplicate, stale, future-dated, and
+malformed Lua envelopes are rejected independently.
 
 `LuaDistributedReadinessEnabled` defaults to `false`. When enabled, cross-PC Lua
 uses opt-in formation staging and waits for conductor GO. Configure
@@ -67,11 +64,14 @@ Furthermore, sending a command across ChatSync (`/cwl2 mopbr ...`) normally appe
 #### ChatSync Broadcast:
 ```text
 /cwl2 mopbr /mop setvar -var=$name=value[;$other=value]
+/cwl2 mopluavars -var=$name=value[;$other=value]
 ```
+
+`mopluavars` is the direct cross-PC Lua control frame. When the chat sender uses the older nested `mopbr /mop setvar` form, MoP automatically emits the dedicated frame as well. The direct form is preferred when diagnosing chat-command routing.
 
 ### 2.3 Out-of-Band ChatSync Interception
 * `ChatWatcher.TryHandleImmediateMacroVariableUpdate` inspects incoming chat messages for `/mop setvar` before they enter the action queue.
-* Variable changes are applied directly to all active `MacroState` and `LoopState` execution contexts (`Plugin.MacroHandler.UpdateActiveMacroVariables`).
+* Every client that actually receives the ChatSync line forwards the idempotent assignment across that machine's IPC group. This does not assume that a particular elected client belongs to or can hear the same game chat channel. Variable changes therefore reach all active macro and Lua execution contexts, not only the receiving client.
 * The update takes effect immediately when the next action in the loop resolves, without interrupting physical character movement or resetting macro loop counters.
 
 ### 2.4 Macro Editor UI Integration

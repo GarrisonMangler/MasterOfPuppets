@@ -10,7 +10,7 @@ using MasterOfPuppets.LuaScripting.Runtime;
 namespace MasterOfPuppets.LuaScripting.Providers;
 
 public sealed class RuntimeLuaCapabilityProvider : ILuaCapabilityProvider {
-    public const string ApiVersion = "2.0.0";
+    public const string ApiVersion = "4.0.0";
 
     private static readonly LuaCapabilityDescriptor Capability = new(
         "mop.runtime",
@@ -38,10 +38,35 @@ public sealed class RuntimeLuaCapabilityProvider : ILuaCapabilityProvider {
             context.RequestStop(reason);
             return new ValueTask<int>(call.Return());
         });
+        runtime["global_stop"] = new LuaFunction(async (call, cancellationToken) => {
+            if (context.RequestGlobalStop == null)
+                throw new InvalidOperationException("global stopping is unavailable for this Lua run");
+            var reason = OptionalString(call, 0) ?? "terminal Mirror stop";
+            return call.Return(await context.RequestGlobalStop(reason, cancellationToken));
+        });
+        runtime["broadcast_emote_resync"] = new LuaFunction(async (call, cancellationToken) => {
+            if (context.RequestEmoteResync == null)
+                throw new InvalidOperationException("cross-PC emote resynchronization is unavailable for this Lua run");
+            var emoteId = ReadUInt(call.GetArgument<double>(0), "emote ID");
+            var persistent = call.GetArgument<bool>(1);
+            var targetId = ReadULongStringAllowZero(call.GetArgument<string>(2), "emote target ID");
+            return call.Return(await context.RequestEmoteResync(emoteId, persistent, targetId, cancellationToken));
+        });
         runtime["local_time"] = new LuaFunction((call, _) =>
             new ValueTask<int>(call.Return(registration.LocalMonotonicSeconds)));
         runtime["shared_time"] = new LuaFunction((call, _) =>
             new ValueTask<int>(call.Return(registration.ChoreographySeconds)));
+        runtime["log"] = new LuaFunction((call, _) => {
+            registration.Quota.WriteLog(call.GetArgument<string>(0), context.Log);
+            return new ValueTask<int>(call.Return());
+        });
+        runtime["variable"] = new LuaFunction((call, _) => {
+            var name = call.GetArgument<string>(0);
+            var value = context.Variables?
+                .FirstOrDefault(pair => pair.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+                .Value;
+            return new ValueTask<int>(call.Return(value == null ? LuaValue.Nil : value));
+        });
         runtime["dalamud_version"] = new LuaFunction((call, _) =>
             new ValueTask<int>(call.Return(NullToUnknown(context.DalamudVersion))));
         runtime["game_version"] = new LuaFunction((call, _) =>
@@ -112,6 +137,18 @@ public sealed class RuntimeLuaCapabilityProvider : ILuaCapabilityProvider {
         return value.Type == LuaValueType.Nil ? null : value.Read<string>();
     }
 
+    private static uint ReadUInt(double value, string label) {
+        if (!double.IsFinite(value) || value < 1 || value > uint.MaxValue || value != Math.Truncate(value))
+            throw new ArgumentOutOfRangeException(label, $"{label} must be an integer between 1 and {uint.MaxValue}");
+        return (uint)value;
+    }
+
+    private static ulong ReadULongStringAllowZero(string value, string label) {
+        if (!ulong.TryParse(value, out var parsed) || parsed == 0xE0000000)
+            return 0;
+        return parsed;
+    }
+
     private static LuaTable RuntimeInfo(
         LuaScriptContext context,
         double elapsed,
@@ -140,6 +177,7 @@ public sealed class RuntimeLuaCapabilityProvider : ILuaCapabilityProvider {
                 ["log_utf8_bytes"] = (double)usage.LogUtf8Bytes,
                 ["pending_waiters"] = (double)usage.PendingWaiters,
                 ["chat_actions"] = (double)usage.ChatActions,
+                ["game_actions"] = (double)usage.GameActions,
             },
         };
     }

@@ -4,6 +4,7 @@ using System.Threading;
 
 using Dalamud.Game.ClientState.Conditions;
 
+using MasterOfPuppets.Extensions;
 using MasterOfPuppets.Util;
 
 namespace MasterOfPuppets.Movement;
@@ -92,9 +93,6 @@ public sealed class SimpleInputMovement : IDisposable {
             return null;
         }
 
-        if (DalamudApi.Condition[ConditionFlag.Performing])
-            return null;
-
         if (movementMode == SimpleMovementMode.Natural
             && _activeStrategy == _formationNatural
             && _activeMovementMode == SimpleMovementMode.Natural
@@ -102,6 +100,7 @@ public sealed class SimpleInputMovement : IDisposable {
             && string.Equals(_activeTrackingKey, trackingKey, StringComparison.Ordinal)) {
             _formationNatural.UpdateTarget(
                 destination,
+                precision,
                 faceDirection,
                 useFormationRelativeMovement,
                 usePursuitTarget,
@@ -114,17 +113,29 @@ public sealed class SimpleInputMovement : IDisposable {
         // different: non-preserving modes keep their own baseline, while Natural deliberately
         // releases it so manual walk/run changes remain live.
         CaptureControlBaselineIfNeeded();
+
+        var currentPlayer = DalamudApi.ObjectTable.LocalPlayer;
+        var needsMovement = currentPlayer != null
+            && currentPlayer.Position.Distance2D(destination) > Math.Max(0f, precision);
+        if (DalamudApi.Condition[ConditionFlag.Performing]) {
+            if (needsMovement)
+                CancelPersistentEmote();
+            return null;
+        }
+
+        // Capture walk state before cancellation because non-preserving movement modes may clear it.
+        // Live-toggle modes restore this value immediately and never change it while moving.
+        var savedIsWalking = SimpleMovementWalkState.IsWalking;
+        CancelActiveMove(callNativeStop: true);
+
+        if (needsMovement)
+            CancelPersistentEmote();
         var preserveWalkState = PreservesWalkState(movementMode);
         if (!preserveWalkState) {
             _walkBaseline = CaptureWalkBaseline(
                 _walkBaseline,
-                SimpleMovementWalkState.IsWalking);
+                savedIsWalking);
         }
-
-        CancelActiveMove(
-            callNativeStop: true,
-            restoreControlBaseline: false,
-            restoreWalkBaseline: false);
 
         if (preserveWalkState)
             RestoreWalkBaseline();
@@ -162,6 +173,9 @@ public sealed class SimpleInputMovement : IDisposable {
                 if (player == null) return;
 
                 if (DalamudApi.Condition[ConditionFlag.Performing]) {
+                    if (movementMode == SimpleMovementMode.Natural
+                        && _formationNatural.IsIssuingMovement)
+                        CancelPersistentEmote();
                     StopMove();
                     return;
                 }
@@ -173,6 +187,9 @@ public sealed class SimpleInputMovement : IDisposable {
                 }
 
                 movementComplete = strategy.Update(context, player.Position) == SimpleMovementUpdateResult.Complete;
+                if (movementMode == SimpleMovementMode.Natural
+                    && _formationNatural.IsIssuingMovement)
+                    CancelPersistentEmote();
             },
             callback: () => {
                 var newerMoveStarted = _cts != null && !ReferenceEquals(_cts, cts);
@@ -207,6 +224,56 @@ public sealed class SimpleInputMovement : IDisposable {
 
         return cts;
     }
+
+    private static unsafe void CancelPersistentEmote() {
+        var player = FFXIVClientStructs.FFXIV.Client.Game.Control.Control.GetLocalPlayer();
+        if (player == null)
+            return;
+
+        var character = &player->Character;
+        if (!HasCancelableEmoteState(
+                character->Mode is FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterModes.EmoteLoop
+                    or FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterModes.InPositionLoop,
+                character->Timeline.BaseOverride,
+                character->Timeline.LipsOverride,
+                character->EmoteController.IsEmoting(),
+                character->EmoteController.IsInEmoteLoop()))
+            return;
+
+        // Preserve the game's authoritative interruption before clearing the
+        // local fields. Some persistent emotes leave only timeline state set;
+        // clearing that state alone lets the animation survive on other
+        // clients or be restored by a stale actor snapshot.
+        const int emoteLoopExitInPlaceCommand = 0x1F7;
+        if (!FFXIVClientStructs.FFXIV.Client.Game.GameMain.ExecuteCommand(
+                emoteLoopExitInPlaceCommand, 0, 0, 0, 0)) {
+            var actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
+            if (actionManager != null)
+                actionManager->UseAction(
+                    FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction,
+                    2);
+        }
+
+        character->Timeline.BaseOverride = 0;
+        character->Timeline.LipsOverride = 0;
+        character->EmoteController.EmoteId = 0;
+        character->EmoteController.Target = 0;
+        character->EmoteController.Stance = 0;
+        character->EmoteController.CPoseState = 0;
+        character->SetMode(FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterModes.Normal, 0);
+    }
+
+    internal static bool HasCancelableEmoteState(
+        bool isLoopMode,
+        uint baseOverride,
+        uint lipsOverride,
+        bool controllerReportsEmoting,
+        bool controllerReportsLoop) =>
+        isLoopMode
+        || baseOverride != 0
+        || lipsOverride != 0
+        || controllerReportsEmoting
+        || controllerReportsLoop;
 
     public static ArrivalMovementState GetArrivalState(
         float distance,

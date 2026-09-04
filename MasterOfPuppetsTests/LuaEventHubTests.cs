@@ -24,17 +24,46 @@ public sealed class LuaEventHubTests {
     }
 
     [Fact]
-    public async Task FilteredRead_IsSequential_AndTimesOutWithoutBusyPolling() {
+    public async Task FilteredRead_PreservesUnrelatedEvents_AndTimesOutWithoutBusyPolling() {
         using var hub = new LuaEventHub();
         hub.Publish("movement.started");
         hub.Publish("chat.message", new Dictionary<string, string> { ["text"] = "hello" });
 
         var item = await hub.ReadAsync("chat.message", TimeSpan.FromSeconds(1), CancellationToken.None);
         var timeout = await hub.ReadAsync("missing", TimeSpan.FromMilliseconds(20), CancellationToken.None);
+        Assert.True(hub.TryRead(null, out var preserved));
 
         Assert.Equal("hello", item?.Data["text"]);
         Assert.Null(timeout);
+        Assert.Equal("movement.started", preserved?.Name);
         Assert.Equal(2, hub.Snapshot().Consumed);
+    }
+
+    [Fact]
+    public async Task DataFilteredRead_PreservesSameNameEventsForOtherActorWatches() {
+        using var hub = new LuaEventHub();
+        hub.Publish("actor.jump", new Dictionary<string, string> { ["watch_id"] = "other" });
+        hub.Publish("actor.jump", new Dictionary<string, string> { ["watch_id"] = "wanted" });
+
+        var wanted = await hub.ReadAsync(
+            "actor.jump",
+            new Dictionary<string, string> { ["watch_id"] = "wanted" },
+            TimeSpan.FromSeconds(1),
+            CancellationToken.None);
+
+        Assert.Equal("wanted", wanted?.Data["watch_id"]);
+        Assert.True(hub.TryRead("actor.jump", out var other));
+        Assert.Equal("other", other?.Data["watch_id"]);
+    }
+
+    [Fact]
+    public void RawStreamInterests_AreExplicitAndReversible() {
+        using var hub = new LuaEventHub();
+        Assert.False(hub.IsInterested("combat.action"));
+        hub.RegisterInterest("combat.action");
+        Assert.True(hub.IsInterested("combat.action"));
+        Assert.True(hub.UnregisterInterest("combat.action"));
+        Assert.False(hub.IsInterested("combat.action"));
     }
 
     [Fact]
@@ -53,6 +82,8 @@ public sealed class LuaEventHubTests {
             Events: hub));
 
         await runner.RunAsync("""
+            assert(mop.capabilities.has("mop.events", "3.0.0"))
+            assert(mop.events.subscribe("combat.action"))
             local event = mop.events.next("chat.message", 1)
             assert(event.status == "event" and event.name == "chat.message")
             assert(event.data.speaker == "Alice Example@Moogle")
@@ -61,6 +92,7 @@ public sealed class LuaEventHubTests {
             assert(missing.status == "timeout")
             local stats = mop.events.stats()
             assert(stats.capacity == 256 and stats.published == 1 and stats.consumed == 1)
+            assert(mop.events.unsubscribe("combat.action"))
             """, CancellationToken.None);
     }
 
@@ -119,6 +151,20 @@ public sealed class LuaEventHubTests {
         false,
         true,
         false,
+        true,
+        false,
+        0,
+        0,
+        0,
+        "0",
+        false,
+        0,
+        0,
+        0,
+        0,
+        false,
+        0,
+        "Online",
         1,
         100,
         100,

@@ -1,3 +1,4 @@
+using MasterOfPuppets;
 using MasterOfPuppets.LuaScripting.Synchronization;
 
 using System.Text;
@@ -5,6 +6,30 @@ using System.Text;
 using Xunit;
 
 public sealed class LuaSynchronizationProtocolTests {
+    [Fact]
+    public void DedicatedLuaVariableUpdate_ParsesCompleteFormationReflow() {
+        var variables = ChatWatcher.ParseLuaVariableUpdateArguments([
+            "-var=$rows=2;$columns=5;$horizontal=0.5;$vertical=0.4",
+        ]);
+
+        Assert.Equal("2", variables["rows"]);
+        Assert.Equal("5", variables["columns"]);
+        Assert.Equal("0.5", variables["horizontal"]);
+        Assert.Equal("0.4", variables["vertical"]);
+    }
+
+    [Theory]
+    [InlineData("Leader Character", "Leader Character@Sargatanas", true)]
+    [InlineData("Leader Character@Sargatanas", "Leader Character@Sargatanas", true)]
+    [InlineData("Remote Puppet@Sargatanas", "Leader Character@Sargatanas", false)]
+    [InlineData("", "Leader Character@Sargatanas", false)]
+    public void ReadableLuaRun_OnlyChatSenderRelaysAuthoritativeRoster(
+        string senderName,
+        string localName,
+        bool expected) {
+        Assert.Equal(expected, ChatWatcher.ShouldRelayReadableLuaRun(senderName, localName));
+    }
+
     [Fact]
     public void FrameworkUpdateCadence_ThrottlesDistributedHousekeeping() {
         var cadence = new LuaFrameworkUpdateCadence();
@@ -15,48 +40,6 @@ public sealed class LuaSynchronizationProtocolTests {
         Assert.True(cadence.ShouldUpdateLaunches(1_050));
         Assert.False(cadence.ShouldTickSessions(1_249));
         Assert.True(cadence.ShouldTickSessions(1_250));
-    }
-
-    [Fact]
-    public void ConductorTrust_DefaultsToSelf_AndRequiresExactAllowlistIdentity() {
-        Assert.True(LuaConductorTrustPolicy.IsTrusted(
-            "Alice Example@Moogle",
-            "Alice Example@Moogle",
-            null,
-            null,
-            out _));
-        Assert.False(LuaConductorTrustPolicy.IsTrusted(
-            "Bob Example@Omega",
-            "Alice Example@Moogle",
-            LuaConductorTrustModes.SelfOnly,
-            ["Bob Example@Omega"],
-            out var selfOnlyReason));
-        Assert.Contains("self-only", selfOnlyReason);
-        Assert.True(LuaConductorTrustPolicy.IsTrusted(
-            "Bob Example@Omega",
-            "Alice Example@Moogle",
-            LuaConductorTrustModes.Allowlist,
-            ["Bob Example@Omega"],
-            out _));
-        Assert.False(LuaConductorTrustPolicy.IsTrusted(
-            "Bob Example@Omega",
-            "Alice Example@Moogle",
-            LuaConductorTrustModes.Allowlist,
-            ["Bob Example@Moogle"],
-            out var worldMismatch));
-        Assert.Contains("allowlist", worldMismatch);
-        Assert.True(LuaConductorTrustPolicy.IsTrusted(
-            "Alice Example",
-            "Alice Example@Moogle",
-            LuaConductorTrustModes.SelfOnly,
-            null,
-            out _));
-        Assert.True(LuaConductorTrustPolicy.IsTrusted(
-            "Bob Example",
-            "Alice Example@Moogle",
-            LuaConductorTrustModes.Allowlist,
-            ["Bob Example@Omega"],
-            out _));
     }
 
     [Fact]

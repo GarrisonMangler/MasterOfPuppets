@@ -71,11 +71,10 @@ The readable `mopluarun` command is expanded by the sender's MoP client into a s
 
 Chat Sync does not transmit script or module source. Each PC must already have the identical installed schema-v2 bundle. A missing or different copy is rejected instead of silently running different behavior. Envelope version 6 carries the full contract hash, a unique message ID, and a creation timestamp. Receivers reject duplicate, stale, future-dated, or malformed envelopes.
 
-Cross-PC Lua starts and stops also require a trusted conductor. The default is
-**self only**, which rejects Lua control sent by another character. To use one
-character as the conductor for other PCs, select **allowlist** under
-**Settings > Trusted Lua Conductors** on every receiving client and enter the
-conductor's exact `Name@World`. Name-only matches are intentionally rejected.
+Cross-PC Lua starts and stops use the normal Chat Sync channel and optional
+sender-whitelist settings, just like macro commands. Anyone accepted by those
+settings can start or stop Lua scripts; no separate conductor authorization is
+required.
 
 The next distributed protocol generation also has a compact binary wire codec
 for PREPARE, STAGE/READY, GO, clock probe/reply, shared variables, participant
@@ -86,7 +85,7 @@ validate exact sender/CID identity, conductor authority, replay age, phase
 ordering, and roster membership, and expose participant state in the Scripts
 window.
 
-**Settings > Trusted Lua Conductors > Experimental PREPARE / READY / GO
+**Settings > Lua Synchronization > Experimental PREPARE / READY / GO
 staging** opts the public `mopluarun` flow into the readiness bridge. Each client
 materializes PREPARE from the authenticated v6 manifest, takes a temporary
 movement/synchronized-control lease, moves its local actor to the configured
@@ -146,11 +145,11 @@ waiters, 200 total chat actions, and at most 10 chat actions in any five-second
 window. Crossing a limit stops the script with a quota error. `mop.runtime.info()`
 and `mop.runtime.status()` expose current quota usage in their `quota` table.
 
-### Versioned V2 runtime API
+### Versioned runtime API
 
 | Function | Purpose |
 | :--- | :--- |
-| `mop.api_version()` | Returns the current namespaced API version (`2.0.0`). |
+| `mop.api_version()` | Returns the current namespaced API version (`4.0.0`). |
 | `mop.capabilities.list()` | Returns capability descriptors installed for this run. |
 | `mop.capabilities.has(name, minimum_version?)` | Tests whether a capability and optional minimum version are available. |
 | `mop.capabilities.describe(name)` | Returns one descriptor or `nil`. |
@@ -172,17 +171,21 @@ to degrade gracefully.
 
 ### Typed event API (`mop.events`)
 
+The `mop.events` capability is version `3.0.0`.
 `mop.events.poll(name?)` returns the next matching event immediately or `nil`.
 `mop.events.next(name?, timeout_seconds?)` waits without blocking the game
 thread and returns either an event or `{ status = "timeout" }`.
+Named filters are non-destructive: events with another name remain queued for
+another reaction. `mop.events.subscribe(name)` and `unsubscribe(name)` control
+high-volume raw world streams such as `combat.action` and `emote.played`.
 `mop.events.stats()` reports capacity, published, consumed, dropped, and
 completed counters. Events contain `status`, `sequence`, `name`,
 `timestamp_unix_ms`, and a string-valued `data` table.
 
 Each run owns a bounded 256-event queue. Producers never call Lua directly;
 when the queue is full, the oldest entry is dropped and the pressure is visible
-through `stats()`. Filtering is sequential: unmatched entries encountered while
-searching for a named event are consumed. Current producers include run
+through `stats()`. Name and actor-watch filters preserve unmatched entries.
+Current producers include run
 lifecycle, host transition, `/say` chat, selected/focus target changes,
 condition changes, and participant visibility/loss events. Game observations
 are sampled at most four times per second from immutable framework-thread
@@ -208,6 +211,11 @@ authenticated protocol session supplies the roster and conductor authority.
 
 ### Typed game-state API (`mop.game-state`)
 
+The `mop.game-state` capability is version `4.0.0`. Actor APIs operate on any
+locally observable real player. The source does not need to be a configured
+Master Of Puppets character, a participant, a party member, or a client
+controlled by the same PC.
+
 `mop.self.snapshot()`, `mop.target.snapshot(kind)`, `mop.actors.list()`,
 `mop.actors.find(query)`, `mop.participants.list()`, and `mop.game.snapshot()`
 return immutable tables. Actor lookup reports `found`, `missing`, or `ambiguous`
@@ -225,11 +233,65 @@ snapshots with typed IDs, HP, data ID, and an actor snapshot when the buddy has
 a visible game object. `mop.actors.wait_visible(query, timeout)`,
 `mop.actors.wait_lost(query, timeout)`, and
 `mop.actors.wait_proximity(query, yalms, timeout)` provide bounded cancellable
-waits without busy polling. `mop.target.wait_changed(timeout)` waits for the
+waits without busy polling. An ambiguous name returns `ambiguous` immediately;
+it is never treated as missing or lost. `mop.target.wait_changed(timeout)` waits for the
 selected target identity to change, and
 `mop.game.wait_condition(name, active?, timeout?)` matches condition names
 case-insensitively. Every wait returns a structured status table; timeout is
 `{ status = "timeout" }`.
+
+`mop.actors.watch(query)` is the low-overhead dynamic observation primitive.
+The query may be an exact game-object ID, entity ID, or player name (prefer
+`Name@World`). The result contains `count`, a stable `watch_id`, monotonic
+`revision`, a boolean `changes` table, and the current `actor`. `count` is
+greater than one when a name is ambiguous. Repeating the same query in
+one run reuses the same shared native watch; it does not create another world
+scan. `mop.actors.wait_changed(query, after_revision, timeout?)` waits until the
+cached watch advances and returns `status = "changed"`, or `timeout`.
+
+Watch actors expose position, movement/walk/jump state, target, mount,
+companion, emote, pose, ornament, facewear, headgear, visor, Sprint, weapon,
+online status, and class/job. Corresponding change flags allow scripts to react
+without comparing every field. `actor.state`, `actor.found`, and `actor.lost`
+events carry the same watch ID and revision for event-loop integration.
+
+`mop.actors.next_event(query, kind, timeout?)` is the concise, source-bound
+reaction primitive. It creates or reuses the cached actor watch and waits only
+for that actor, preserving events belonging to other watched players. Supported
+kinds are `action`, `combat_action`, `general_action`, `jump`, `sprint`,
+`emote`, `emote_state`, `fashion_accessory`, `mount`, `facewear`, `target`,
+`idle_pose`, and `weapon`. The returned event includes `watch_id`, `query`,
+source identity, revision, current actor state, and fields specific to that
+edge. `mop.actors.event_sources()` reports whether state sampling, the native
+combat/general-action hook, and the native short-emote hook are available. A
+missing native hook produces `status = "unavailable"`, not a misleading timeout.
+
+State-backed actor events are `actor.jump`, `actor.sprint`,
+`actor.emote_state`, `actor.fashion_accessory`, `actor.mount`,
+`actor.facewear`, `actor.target`, `actor.idle_pose`, and `actor.weapon`.
+Native edges are `actor.action`, `actor.combat_action`,
+`actor.general_action`, and `actor.emote_played`. Jump and Sprint use their
+state events because those general actions do not reliably produce action
+effects; short emotes use the native edge because they may begin and clear
+between state samples.
+
+`mop.actors.job(query)` observes the class/job of any visible player.
+`mop.actors.wait_job_changed(query, previous_id, timeout?,
+expected_game_object_id?)` provides a convenient identity-bound job wait and
+reports `changed`, `timeout`, `ambiguous`, `actor_changed`, or `actor_lost`.
+These actor-query functions are the portable choice for dynamic scripts;
+`mop.target.job` remains a convenience for selected/focus/run/self slots.
+
+`mop.target.job(kind?)` returns a structured observation containing
+`class_job_id` and the bound actor. `mop.target.wait_job_changed(previous_id,
+timeout?, kind?, expected_game_object_id?)` waits for that actor's class/job to
+change and reports `changed`, `timeout`, `target_changed`, or `target_lost`.
+Passing the expected game-object ID prevents a script from silently switching
+to a newly selected player between waits.
+
+See [Universal Lua Building Blocks](lua-universal-building-blocks.md) for
+identity-safe observation loops, arbitrary-player job mirroring, action
+reactions, cleanup, and performance guidance.
 
 ### Macro and formation API (`mop.automation`)
 
@@ -248,12 +310,95 @@ events to the run event stream.
 
 ### Commands and game actions (`mop.actions`)
 
+The `mop.actions` capability is version `4.0.0`.
+
 `mop.commands.execute(text, scope?)` dispatches one validated line to `local`
 or `current_pc`; empty, multiline, NUL-containing, and over-500-byte commands
 are rejected. `mop.actions.use(kind, id, scope?)` supports typed `action`,
-`general_action`, and `item` IDs. `mop.actions.gearset(index, scope?)`,
-`mop.actions.walk(on|off|toggle, scope?)`, and
+`general_action`, and `item` IDs. `mop.actions.walk(on|off|toggle, scope?)` and
 `mop.actions.stop_movement(scope?)` reuse existing MoP services.
+
+`mop.actions.jump()` and `mop.actions.sprint()` are simple local reaction
+helpers. They request FFXIV's universal General Action IDs 2 and 3 respectively,
+consume the normal game-action quota, and return the standard
+`ok`/`status`/`message` result. Scripts do not need to repeat those built-in IDs.
+
+### Script-controlled emotes
+
+Emote policy also belongs entirely to Lua. `mop.actors.next_event(query,
+"emote", timeout)` observes the native start edge even for short animations,
+while an actor watch exposes `emote_id`, `emote_target_game_object_id`, and
+`is_emote_looping` for persistent state and stop transitions.
+
+`mop.actions.use_exact("emote", id, "local", persistent)` executes one exact
+locally owned emote without choosing a fallback. Use
+`mop.actions.use_exact_on("emote", id, target_id, persistent)` to retain an
+observed target, and `mop.actions.stop_emote()` to stop a loop the script owns.
+`stop_emote()` requests FFXIV's network-visible in-place loop exit and falls
+back to the game's jump interruption when that state rejects an in-place exit;
+it does not merely clear local animation memory. Every call returns the normal
+`ok`/`status`/`message` result.
+
+The packaged **Mirror Target Emotes** script combines those primitives for any
+visible run target. It intentionally ignores the source emote's target and
+always uses `mop.actions.use_exact`, so detecting an emote never changes a
+recipient's selected game target to the source's target-of-target. Emote row IDs
+are universal, so the default is to mirror the same ID. Events are
+edge-triggered: each observed activation is dispatched once, including
+multiple activations of the same persistent emote in rapid succession. The
+script does not infer that a repeated ID is an automatic duplicate merely
+because the preceding loop is still active. Each new persistent activation has
+its own sampled-state confirmation window, so delayed stop or movement samples
+from the preceding activation cannot cancel the new one.
+A coder can keep all policy in the script with one optional table:
+
+```lua
+local emote_for_observed = {
+    [123] = 456,  -- replace observed emote 123 with local emote 456
+    [789] = false -- ignore observed emote 789
+}
+```
+
+IDs absent from the table mirror unchanged. There is no host gearset-style
+selection, emote UI configuration, or silent random fallback. An unavailable
+exact emote is rejected and reported so the script author can choose an explicit
+replacement.
+
+### Script-controlled gearsets (`mop.gearsets`)
+
+Gearset policy belongs to Lua rather than a hardcoded host table:
+
+| Function | Purpose |
+| :--- | :--- |
+| `mop.gearsets.list(class_job_id?)` | Lists existing local gearsets, optionally filtered to one exact class/job ID. |
+| `mop.gearsets.find(selector, class_job_id?)` | Resolves an exact name or 1-based number without equipping it. |
+| `mop.gearsets.equip(selector, class_job_id?)` | Validates and equips an exact name or 1-based number. |
+| `mop.actions.job(class_job_id, selector)` | Validates that the selected gearset has the exact requested class/job, then equips it. |
+
+A selector is either an exact case-insensitive gearset name or a 1-based
+gearset number. Names that match multiple gearsets are `ambiguous`; use a
+number to distinguish them. Missing selectors, missing gearsets, and job
+mismatches are rejected without equipping anything. The host never chooses a
+preferred slot, treats a base class as its job, or selects the first match.
+
+```lua
+local gearset_for_job = {
+    [19] = "Performance Paladin",
+    [21] = 12,
+}
+
+local target_job_id = 19
+local selector = gearset_for_job[target_job_id]
+if selector ~= nil then
+    local result = mop.actions.job(target_job_id, selector)
+    if not result.ok then mop.log(result.status .. ": " .. result.message) end
+end
+```
+
+Gearset descriptors contain `number`, `name`, and `class_job_id`. Resolution
+and equip results contain `ok`, `status`, `message`, `gearset`, and
+`candidates`, so scripts can handle `missing`, `ambiguous`, and `job_mismatch`
+without parsing text.
 
 These calls require declared game-action, chat/action-budget, or movement
 resources as appropriate and consume the centralized action-rate quota. Scope
@@ -334,12 +479,25 @@ mop.follow_actor {
     brake_at_position = true,
     pursuit_prediction = false,
     immediate_steering = true,
+    rigid_formation = false,
+    formation_radius = 0,
+    neighbors = {},
+    neighbor_correction = 0.25,
+    maximum_neighbor_correction = 0.35,
+    mirror_walk_run = false,
+    mirror_sprint = false,
 }
 ```
 
 The controller reevaluates visibility continuously and follows the first visible candidate that is not the local player. The relative offset is rotated by the chosen anchor's current facing. Defaults are zero offset, face the anchor, `0.1` precision, braking enabled, pursuit prediction disabled, and immediate steering enabled.
 
 This ordered fallback is what allows a chain to survive missing performers. If the nearest predecessor is absent, the follower attaches to the next visible predecessor. If a previously missing predecessor later becomes visible while its script is already running, it automatically becomes the preferred anchor.
+
+With `rigid_formation = true`, all clients evolve the same rate-limited virtual leader frame. `formation_radius` lets the controller reserve enough movement speed for outside slots during a turn instead of rotating a wide grid faster than characters can physically travel. A script may also provide up to four visible `neighbors` as `{ name, offset_x, offset_y, offset_z }` entries. The bounded neighbor correction reduces small client-to-client observation differences without turning the grid into a follow-the-character chain. Reissuing `mop.follow_actor` for the same run and anchor updates offsets and policy in place, which enables live grid reflow.
+
+`mirror_walk_run` infers a remote leader's gait and temporarily switches the follower between walk and run; followers still run while catching up. `mirror_sprint` mirrors status 50 (Sprint) on a best-effort basis, including removing the local Sprint status when the leader's Sprint ends.
+
+Automatic Lua movement always cancels persistent emotes before movement is accepted. There is no general follow option to preserve an emote while translating.
 
 ## Dynamic Conga Line
 

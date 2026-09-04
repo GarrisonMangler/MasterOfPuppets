@@ -38,6 +38,9 @@ public static class FormationCharacterName {
     }
 
     public static int MatchScore(string configName, string actorName) {
+        if (string.IsNullOrWhiteSpace(configName) || string.IsNullOrWhiteSpace(actorName))
+            return -1;
+
         configName = NormalizeWorldSeparator(configName);
         actorName = NormalizeWorldSeparator(actorName);
 
@@ -46,6 +49,9 @@ public static class FormationCharacterName {
 
         var configBaseName = GetBaseCharacterName(configName);
         var actorBaseName = GetBaseCharacterName(actorName);
+
+        if (string.IsNullOrWhiteSpace(configBaseName) || string.IsNullOrWhiteSpace(actorBaseName))
+            return -1;
 
         if (string.Equals(configBaseName, actorBaseName, StringComparison.OrdinalIgnoreCase))
             return int.MaxValue - 1;

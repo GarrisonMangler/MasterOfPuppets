@@ -12,7 +12,6 @@ using Dalamud.Interface.Windowing;
 using MasterOfPuppets.Camera;
 using MasterOfPuppets.Extensions;
 using MasterOfPuppets.Extensions.Dalamud;
-using MasterOfPuppets.LuaScripting.Synchronization;
 using MasterOfPuppets.Resources;
 using MasterOfPuppets.Util;
 using MasterOfPuppets.Util.ImGuiExt;
@@ -22,7 +21,6 @@ namespace MasterOfPuppets;
 public class SettingsWindow : Window {
     private Plugin Plugin { get; }
     private string _characterName = string.Empty;
-    private string _luaConductorName = string.Empty;
     private float _cameraYOffset = GameCameraManager.MaxYOffset;
     // commandKey → { defaultAlias → current input text }
     private readonly Dictionary<string, Dictionary<string, string>> _aliasInputs = new();
@@ -504,41 +502,8 @@ public class SettingsWindow : Window {
         }
 
         ImGui.Spacing();
-        if (ImGui.CollapsingHeader("Trusted Lua Conductors", ImGuiTreeNodeFlags.DefaultOpen)) {
+        if (ImGui.CollapsingHeader("Lua Synchronization", ImGuiTreeNodeFlags.DefaultOpen)) {
             ImGui.Indent();
-            var mode = LuaConductorTrustModes.Normalize(Plugin.Config.LuaConductorTrustMode);
-            if (ImGui.BeginCombo("Lua conductor policy", mode == LuaConductorTrustModes.SelfOnly ? "Self only" : "Explicit allowlist")) {
-                if (ImGui.Selectable("Self only", mode == LuaConductorTrustModes.SelfOnly)) {
-                    Plugin.Config.LuaConductorTrustMode = LuaConductorTrustModes.SelfOnly;
-                    Plugin.IpcProvider.SyncConfiguration();
-                }
-                if (ImGui.Selectable("Explicit allowlist", mode == LuaConductorTrustModes.Allowlist)) {
-                    Plugin.Config.LuaConductorTrustMode = LuaConductorTrustModes.Allowlist;
-                    Plugin.IpcProvider.SyncConfiguration();
-                }
-                ImGui.EndCombo();
-            }
-            ImGui.TextWrapped("Self only is the secure default. Cross-PC Lua runs and stops are accepted only from exact name@world entries when allowlist mode is enabled.");
-
-            if (mode == LuaConductorTrustModes.Allowlist) {
-                ImGui.SetNextItemWidth(MathF.Max(160f, ImGui.GetContentRegionAvail().X - 90f * ImGuiHelpers.GlobalScale));
-                ImGui.InputTextWithHint("##LuaConductorName", "Character Name@World", ref _luaConductorName, 255);
-                ImGui.SameLine();
-                if (ImGui.Button("Add##LuaConductor") && !string.IsNullOrWhiteSpace(_luaConductorName)) {
-                    Plugin.Config.LuaTrustedConductors.AddUnique(_luaConductorName.Trim());
-                    _luaConductorName = string.Empty;
-                    Plugin.IpcProvider.SyncConfiguration();
-                }
-                foreach (var conductor in Plugin.Config.LuaTrustedConductors.ToList()) {
-                    if (ImGui.Selectable($"{conductor}##LuaConductorEntry", false) && ImGui.GetIO().KeyCtrl) {
-                        Plugin.Config.LuaTrustedConductors.Remove(conductor);
-                        Plugin.IpcProvider.SyncConfiguration();
-                    }
-                    ImGuiUtil.ToolTip(Language.DeleteInstructionTooltip);
-                }
-            }
-
-            ImGui.Spacing();
             var readinessEnabled = Plugin.Config.LuaDistributedReadinessEnabled;
             if (ImGui.Checkbox("Experimental PREPARE / READY / GO staging", ref readinessEnabled)) {
                 Plugin.Config.LuaDistributedReadinessEnabled = readinessEnabled;

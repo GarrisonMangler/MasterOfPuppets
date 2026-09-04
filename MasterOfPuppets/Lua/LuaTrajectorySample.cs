@@ -8,7 +8,9 @@ public readonly record struct LuaTrajectorySample(
     float FacingRadians,
     double ElapsedSeconds) {
 
-    public const float MaximumRadius = 12f;
+    // A 16-column row at one-yalm spacing with a three-yalm opposite-row
+    // offset reaches roughly 15.3 yalms from its left-most anchor.
+    public const float MaximumRadius = 20f;
 
     public static bool TryCreate(
         double x,
