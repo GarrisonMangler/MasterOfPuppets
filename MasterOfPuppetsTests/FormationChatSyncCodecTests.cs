@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using MasterOfPuppets;
 using MasterOfPuppets.Formations;
 
 using Xunit;
@@ -97,7 +98,29 @@ public class FormationChatSyncCodecTests {
         Assert.True(FormationChatSyncCodec.TryDecode(encoded, out var decoded));
         Assert.Equal(source, decoded);
         Assert.True(System.Text.Encoding.UTF8.GetByteCount($"/cwl2 {FormationChatSyncCodec.CommandName} {encoded}") <= 500);
+    }
 
+    [Fact]
+    public void FormationSnapshot_IsRecognizedAsHiddenInternalTransport() {
+        var source = new FormationChatAnchorPayload(
+            FormationChatSyncCodec.CurrentSchemaVersion,
+            Guid.NewGuid().ToString("D"),
+            DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            "Circle 2.5 (32)",
+            250,
+            "/wEAAA==",
+            134.81335f,
+            3.2149503f,
+            -13.046509f,
+            0.0546968f,
+            "External Target",
+            0,
+            269339510,
+            "precise");
+        var encoded = FormationChatSyncCodec.Encode(source);
+
+        Assert.True(ChatWatcher.IsInternalLuaSyncEnvelope(
+            [FormationChatSyncCodec.CommandName, encoded]));
     }
 
     [Fact]

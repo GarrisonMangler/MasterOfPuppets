@@ -78,6 +78,7 @@ internal class ChatWatcher : IDisposable {
         };
 
         DalamudApi.ChatGui.ChatMessage += OnChatMessage;
+        DalamudApi.ChatGui.CheckMessageHandled += OnCheckMessageHandled;
         // UpdateRegistration();
     }
 
@@ -85,6 +86,7 @@ internal class ChatWatcher : IDisposable {
         LuaDistributedLaunches.CancelAll("plugin disposed");
         _luaFragmentAssembler.Clear();
         DalamudApi.ChatGui.ChatMessage -= OnChatMessage;
+        DalamudApi.ChatGui.CheckMessageHandled -= OnCheckMessageHandled;
     }
 
     // public void UpdateRegistration() {
@@ -109,25 +111,18 @@ internal class ChatWatcher : IDisposable {
         if (message.IsHandled)
             return;
 
-        var senderName = GetSenderName(message);
-
-        if (!AllowedChatTypes.Contains(message.LogKind)
-            || !Plugin.Config.ListenedChatTypes.Contains(message.LogKind)
-            || !IsAllowedSender(senderName)
-        ) {
+        if (!AllowedChatTypes.Contains(message.LogKind))
             return;
-        }
 
         var parsedArgs = ArgumentParser.ParseChatArgs(ResolveTextWithIcons(message.Message));
         if (!parsedArgs.Any()) return;
 
-        // Internal synchronized-Lua envelopes must still be processed below,
-        // but they are transport frames rather than user chat. Marking the
-        // message handled keeps encoded payloads and fragments out of every
-        // listener's visible chat log.
-        if (IsInternalLuaSyncEnvelope(parsedArgs)
-            && message is IHandleableChatMessage handleable)
-            handleable.PreventOriginal();
+        SuppressInternalSyncEnvelope(message, parsedArgs);
+
+        var senderName = GetSenderName(message);
+        if (!Plugin.Config.ListenedChatTypes.Contains(message.LogKind)
+            || !IsAllowedSender(senderName))
+            return;
 
 #if DEBUG
         DalamudApi.PluginLog.Debug($"OnChatMessage ({senderName} - {message.LogKind}): [{parsedArgs[0]}]: {string.Join("|", parsedArgs.Skip(1))}");
@@ -138,6 +133,25 @@ internal class ChatWatcher : IDisposable {
         } else if (CommandHandlers.TryGetValue(parsedArgs[0], out var action)) {
             action.Invoke(parsedArgs.Skip(1).ToArray(), senderName);
         }
+    }
+
+    private void OnCheckMessageHandled(IChatMessage message) {
+        if (!Plugin.Config.UseChatSync
+            || message.IsHandled
+            || !AllowedChatTypes.Contains(message.LogKind))
+            return;
+
+        var parsedArgs = ArgumentParser.ParseChatArgs(ResolveTextWithIcons(message.Message));
+        if (parsedArgs.Any())
+            SuppressInternalSyncEnvelope(message, parsedArgs);
+    }
+
+    private static void SuppressInternalSyncEnvelope(
+        IChatMessage message,
+        IReadOnlyList<string> parsedArgs) {
+        if (IsInternalLuaSyncEnvelope(parsedArgs)
+            && message is IHandleableChatMessage handleable)
+            handleable.PreventOriginal();
     }
 
     internal static bool IsInternalLuaSyncEnvelope(IReadOnlyList<string> parsedArgs) {
