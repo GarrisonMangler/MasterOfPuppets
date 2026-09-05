@@ -558,8 +558,35 @@ internal sealed class PluginLuaActionFacade : ILuaActionFacade {
         }, cancellationToken);
     }
 
-    private Task<T> OnFramework<T>(Func<T> action, CancellationToken cancellationToken) =>
-        DalamudApi.Framework.RunOnFrameworkThread(action).WaitAsync(cancellationToken);
+    private static int _performanceCalls;
+    private static double _performanceExecutionMs;
+    private static double _performanceQueueMaxMs;
+    private static double _performanceExecutionMaxMs;
+
+    internal static string TakePerformanceSummary() {
+        var result = $"actionCalls={_performanceCalls} actionTotalMs={_performanceExecutionMs:F3} actionMaxMs={_performanceExecutionMaxMs:F3} queueMaxMs={_performanceQueueMaxMs:F3}";
+        _performanceCalls = 0;
+        _performanceExecutionMs = _performanceQueueMaxMs = _performanceExecutionMaxMs = 0;
+        return result;
+    }
+
+    private Task<T> OnFramework<T>(Func<T> action, CancellationToken cancellationToken) {
+        var queued = System.Diagnostics.Stopwatch.GetTimestamp();
+        return DalamudApi.Framework.RunOnFrameworkThread(() => {
+            cancellationToken.ThrowIfCancellationRequested();
+            var started = System.Diagnostics.Stopwatch.GetTimestamp();
+            _performanceQueueMaxMs = Math.Max(_performanceQueueMaxMs,
+                System.Diagnostics.Stopwatch.GetElapsedTime(queued, started).TotalMilliseconds);
+            try {
+                return action();
+            } finally {
+                var elapsed = System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+                _performanceCalls++;
+                _performanceExecutionMs += elapsed;
+                _performanceExecutionMaxMs = Math.Max(_performanceExecutionMaxMs, elapsed);
+            }
+        }).WaitAsync(cancellationToken);
+    }
 
     private static LuaAutomationResult ExecuteCosmetic(string kind, uint requestedId, bool? persistent, bool allowFallback) {
         var normalized = NormalizeCosmeticKind(kind);

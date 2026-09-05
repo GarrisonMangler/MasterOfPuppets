@@ -1,0 +1,241 @@
+{
+  "Name": "Campfire: Pentagram Light",
+  "Tags": [
+    "Campfire",
+    "Pentagram"
+  ],
+  "Color": {
+    "X": 1,
+    "Y": 0.6,
+    "Z": 0.2,
+    "W": 1
+  },
+  "IconId": 2681,
+  "Commands": [
+    {
+      "Cids": [
+        18014498545172021
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498563678948
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498563154967
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498563665055
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498563667141
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498563676673
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498563880622
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498563975016
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498567996160
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498564936865
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498570473149
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498570473433
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498567553281
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498572667643
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498576354403
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498567531790
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498564173337
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498571136757
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498571153678
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498571161831
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498571153779
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498571146002
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498571136822
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498571145699
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498573073575
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498576354931
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498578296334
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498578296489
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498578305144
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498578447585
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498578447641
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    },
+    {
+      "Cids": [
+        18014498578454220
+      ],
+      "GroupIds": [],
+      "Actions": "/minion \"Wanderer's Campfire\""
+    }
+  ],
+  "Variables": ""
+}

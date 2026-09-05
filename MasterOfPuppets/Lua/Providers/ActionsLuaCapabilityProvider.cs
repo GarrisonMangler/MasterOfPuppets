@@ -19,6 +19,7 @@ public sealed class ActionsLuaCapabilityProvider : ILuaCapabilityProvider {
     public LuaCapabilityDescriptor Descriptor => Capability;
 
     public void Register(LuaApiRegistrationContext registration) {
+        long nextStopEmoteAt = 0;
         var commands = registration.GetOrCreateModule("commands");
         commands["execute"] = new LuaFunction(async (call, cancellationToken) => {
             var text = call.GetArgument<string>(0);
@@ -136,7 +137,12 @@ public sealed class ActionsLuaCapabilityProvider : ILuaCapabilityProvider {
             return call.Return(ToLua(await Facade(registration).StopCosmeticAsync(kind, cancellationToken)));
         });
         actions["stop_emote"] = new LuaFunction(async (call, cancellationToken) => {
-            registration.Quota.ConsumeGameAction();
+            var now = Environment.TickCount64;
+            if (now < nextStopEmoteAt)
+                return call.Return(ToLua(LuaAutomationResult.Rejected("emote stop throttled")));
+            nextStopEmoteAt = now + 250;
+            if (!registration.Quota.TryConsumeGameAction(out var quotaMessage))
+                return call.Return(ToLua(LuaAutomationResult.Rejected(quotaMessage)));
             return call.Return(ToLua(await Facade(registration).StopEmoteAsync(cancellationToken)));
         });
         actions["pose"] = new LuaFunction(async (call, cancellationToken) => {

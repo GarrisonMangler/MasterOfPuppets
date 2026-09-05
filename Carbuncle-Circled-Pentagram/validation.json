@@ -1,0 +1,21 @@
+{
+  "Participants": 32,
+  "EmeraldCircle": 12,
+  "TopazMovingStar": 15,
+  "RubyFixedTips": 5,
+  "RadiusYalms": 6,
+  "CircleWaypoints": 48,
+  "CircleLapSeconds": 24,
+  "StarWaypoints": 60,
+  "StarLapSeconds": 36,
+  "ProductionSanitizerChecks": 64,
+  "ProductionExpansionChecks": 64,
+  "BlobCodec": "Production BlobUtil GZip/Base64, MIME 76-character lines, roundtrip verified",
+  "LiveConfigModified": false,
+  "PluginSourceModified": false,
+  "InGameTested": false,
+  "IndependentStarSegmentsChecked": 900,
+  "IndependentCornerVisitsChecked": 75,
+  "IndependentCirclePathsChecked": 12,
+  "ExactTwoLineSummonBlocksChecked": 32
+}

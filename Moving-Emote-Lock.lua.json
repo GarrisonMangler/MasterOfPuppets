@@ -1,0 +1,31 @@
+{
+  "SchemaVersion": 2,
+  "Id": "be5bdfc6-bb34-42ef-9554-1326dc0cc11b",
+  "Revision": 2,
+  "Name": "Moving Emote Lock",
+  "Description": "Mirrors the source looping emote, then replays it after a weapon transition so plugin-controlled movement can retain the animation.",
+  "Variables": "$all_configured = true",
+  "ParticipantFormation": "",
+  "Source": "-- Reproduces the moving looping-emote state discovered while mirroring.\n-- Start this synchronized script, broadcast a looping emote, then toggle the\n-- initiator's weapon. Plugin-controlled movement can continue while the\n-- followers retain the replayed animation.\n\nlocal launch_anchor = mop.get_var(\"anchor\") or \"\"\nlocal explicit_target = mop.get_var(\"mop_run_target_explicit\") == \"true\"\nlocal target_name = explicit_target and launch_anchor or mop.get_run_target()\nif not target_name or target_name == \"\" then\n    error(\"Moving Emote Lock could not resolve the initiator or selected target\")\nend\n\nlocal runtime_info = mop.runtime.info()\nlocal conductor_name = runtime_info.conductor or \"\"\nlocal local_character_name = runtime_info.character_name or \"\"\n\nlocal function visible_target(name)\n    local lookup = mop.actors.find(name)\n    if lookup.status == \"found\" and lookup.actor and lookup.actor.is_loaded then\n        return lookup.actor\n    end\n    return nil\nend\n\nlocal function reveal_explicit_target()\n    if not explicit_target\n        or conductor_name == \"\"\n        or mop.names_match(local_character_name, conductor_name) then\n        return\n    end\n    local assist_name = conductor_name:match(\"^(.-)@\") or conductor_name\n    mop.commands.execute('/assist \"' .. assist_name .. '\"', \"local\")\nend\n\nlocal function stable_target(name)\n    local previous_id = nil\n    local next_reveal = 0\n    while mop.is_running() do\n        local actor = visible_target(name)\n        if actor and actor.entity_id and actor.entity_id > 0 then\n            if previous_id == actor.entity_id then return actor end\n            previous_id = actor.entity_id\n        else\n            previous_id = nil\n            if mop.time() >= next_reveal then\n                reveal_explicit_target()\n                next_reveal = mop.time() + 1.0\n            end\n        end\n        mop.wait(0.25)\n    end\n    return nil\nend\n\nlocal target = stable_target(target_name)\nif not target then return end\n\nlocal self = mop.self.snapshot()\nlocal local_is_target = self and self.entity_id == target.entity_id\nlocal target_weapon_drawn = target.is_weapon_drawn or false\nlocal target_emote_id = target.emote_id or 0\nlocal target_emote_looping = target.is_emote_looping or false\nlocal last_looping_emote_id = target_emote_looping and target_emote_id or 0\nlocal last_looping_emote_seen = target_emote_looping and mop.time() or -100\n\nmop.log(\"Moving Emote Lock armed from \" .. target_name\n    .. \"; perform a looping emote, then toggle the source weapon\")\n\nwhile mop.is_running() do\n    target = visible_target(target_name)\n    if not target then\n        target = stable_target(target_name)\n        if not target then return end\n        self = mop.self.snapshot()\n        local_is_target = self and self.entity_id == target.entity_id\n        target_weapon_drawn = target.is_weapon_drawn or false\n        target_emote_id = target.emote_id or 0\n        target_emote_looping = target.is_emote_looping or false\n    end\n\n    local emote_id = target.emote_id or 0\n    local emote_looping = target.is_emote_looping or false\n    local weapon_drawn = target.is_weapon_drawn or false\n    local weapon_transition = weapon_drawn ~= target_weapon_drawn\n\n    if emote_looping and emote_id > 0 then\n        last_looping_emote_id = emote_id\n        last_looping_emote_seen = mop.time()\n    end\n\n    local emote_changed = emote_id > 0\n        and (emote_id ~= target_emote_id\n            or (emote_looping and not target_emote_looping))\n    if emote_changed and not local_is_target then\n        local mirrored = mop.actions.use(\"emote\", emote_id, \"local\")\n        if not mirrored.ok then\n            mop.log(\"Unable to mirror emote \" .. tostring(emote_id)\n                .. \": \" .. (mirrored.message or \"unknown error\"))\n        end\n    elseif not emote_looping\n        and target_emote_looping\n        and not weapon_transition\n        and not local_is_target then\n        local stopped = mop.actions.stop_emote()\n        if not stopped.ok then\n            mop.log(\"Unable to stop mirrored emote: \" .. (stopped.message or \"unknown error\"))\n        end\n    end\n    target_emote_id = emote_id\n    target_emote_looping = emote_looping\n\n    if weapon_transition then\n        if not local_is_target then\n            local weapon = mop.actions.weapon(weapon_drawn)\n            if not weapon.ok then\n                mop.log(\"Unable to mirror weapon transition: \" .. (weapon.message or \"unknown error\"))\n            elseif last_looping_emote_id > 0\n                and mop.time() - last_looping_emote_seen <= 2.0 then\n                mop.wait(0.15)\n                local replay = mop.actions.use(\"emote\", last_looping_emote_id, \"local\")\n                if replay.ok then\n                    mop.log(\"Locked emote \" .. tostring(last_looping_emote_id)\n                        .. \" after weapon transition\")\n                else\n                    mop.log(\"Unable to lock emote \" .. tostring(last_looping_emote_id)\n                        .. \": \" .. (replay.message or \"unknown error\"))\n                end\n            end\n        end\n        target_weapon_drawn = weapon_drawn\n    end\n\n    mop.wait(0.10)\nend\n",
+  "Modules": {},
+  "DeclaredCapabilities": [
+    "legacy.flat-api",
+    "mop.actions",
+    "mop.game-state",
+    "mop.runtime"
+  ],
+  "Parameters": [],
+  "RequiredResources": 34,
+  "Tags": [
+    "Emote",
+    "Lua",
+    "Synchronized"
+  ],
+  "Color": {
+    "X": 1.0,
+    "Y": 1.0,
+    "Z": 1.0,
+    "W": 1.0
+  },
+  "IconId": 0
+}

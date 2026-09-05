@@ -78,6 +78,29 @@ public sealed class LuaRunQuota {
         }
     }
 
+    public bool TryConsumeGameAction(out string message) {
+        lock (_lock) {
+            if (_gameActions >= _limits.MaximumGameActions) {
+                message = "Lua game-action run quota exceeded.";
+                return false;
+            }
+
+            var now = Environment.TickCount64;
+            var oldestAllowed = now - (long)_limits.GameActionWindow.TotalMilliseconds;
+            while (_recentGameActions.TryPeek(out var observed) && observed <= oldestAllowed)
+                _recentGameActions.Dequeue();
+            if (_recentGameActions.Count >= _limits.MaximumGameActionsPerWindow) {
+                message = $"Lua game-action rate exceeds {_limits.MaximumGameActionsPerWindow} per {_limits.GameActionWindow.TotalSeconds:0.###} seconds.";
+                return false;
+            }
+
+            _recentGameActions.Enqueue(now);
+            _gameActions++;
+            message = string.Empty;
+            return true;
+        }
+    }
+
     public LuaQuotaSnapshot Snapshot() {
         lock (_lock)
             return new LuaQuotaSnapshot(_logLines, _logBytes, _pendingWaiters, _chatActions, _gameActions);

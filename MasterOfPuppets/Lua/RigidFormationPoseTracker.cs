@@ -15,7 +15,7 @@ internal sealed class RigidFormationPoseTracker {
     public const float AboutFaceThresholdRadians = MathF.PI * 5f / 6f;
     public const float RotationErrorThresholdRadians = 0.01f;
     public const float StationaryLeaderDistanceThreshold = 0.15f;
-    public const float StationaryRotationNoiseThresholdRadians = 0.25f;
+    public const float StationaryRotationNoiseThresholdRadians = 0.05f;
     public const float LeaderTurnThresholdRadiansPerSecond = 0.08f;
     public const float TeleportDistance = 25f;
 

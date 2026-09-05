@@ -35,7 +35,7 @@ internal static class LuaScriptCatalog {
         "a4b6105a4aa9076cbc722dfed8cac076f81e6a87be6b6a6442db46085fb15de0",
         "dd2ae3c57f1b3a9cbbda4e0ab8ca4dce9bcd04799328bc6074687bb8f769fba0",
     };
-    private const string DefaultMarchingFormationVariables = "$anchor =\n$group = \"32 Ordered\"\n$visible_only = true\n$rows = 4\n$columns = 8\n$horizontal = 1.0\n$vertical = 1.5\n$precision = 0.12\n$neighbor_correction = 0.25\n$maximum_neighbor_correction = 0.35\n$preserve_emote = false";
+    private const string DefaultMarchingFormationVariables = "$anchor =\n$group = \"32 Ordered\"\n$visible_only = true\n$rows = 4\n$columns = 8\n$horizontal = 1.0\n$vertical = 1.5\n$precision = 0.12\n$neighbor_correction = 0.25\n$maximum_neighbor_correction = 0.35\n$preserve_emote = false\n$face_anchor = true";
     public const string DefaultSwirlingVortexName = "Swirling Vortex";
     private const string DefaultSwirlingVortexFileName = "swirling_vortex.lua";
     public const string DefaultTripleRingVortexName = "Swirling Vortex - Triple Ring";
@@ -44,7 +44,6 @@ internal static class LuaScriptCatalog {
     private const string DefaultEventDrivenCurtainCallFileName = "event_driven_curtain_call.lua";
     public const string DefaultMirrorTargetCombatName = "Mirror Target Combat";
     private const string DefaultMirrorTargetCombatFileName = "mirror_target_combat.lua";
-    private const string CurrentMirrorTargetCombatHash = "3ce370a212818b306dd6836f5d7008b8be10d0b0602850d201433f5d7670ca53";
     public const string DefaultMirrorTargetJobName = "Mirror Target Job";
     private const string DefaultMirrorTargetJobFileName = "mirror_target_job.lua";
     private const string CurrentMirrorTargetJobHash = "97a0c0538b01b1d6f3c77cc2a91d043c4093017987ec570e772b5a0d1fbd3f3d";
@@ -303,15 +302,26 @@ internal static class LuaScriptCatalog {
         return true;
     }
 
-    private static bool UpgradeMirrorTargetCombat(Configuration configuration) {
+    internal static bool UpgradeMirrorTargetCombat(Configuration configuration) {
         var script = configuration.LuaScripts.FirstOrDefault(candidate =>
             candidate.Name.Equals(DefaultMirrorTargetCombatName, StringComparison.OrdinalIgnoreCase));
-        if (script == null || script.Hash.Equals(CurrentMirrorTargetCombatHash, StringComparison.OrdinalIgnoreCase))
+        if (script == null)
             return false;
 
-        script.Source = LoadPackagedScript(DefaultMirrorTargetCombatFileName);
-        script.Description = "All configured characters mirror a loaded target; job changes use the script's explicit gearset map.";
-        script.Variables = "$all_configured = true";
+        // Only migrate the known stock revisions; retain independent edits.
+        var knownRevisions = new[] {
+            "3ce370a21281", "3b276329cf6f", "78bf07e3a27e",
+            "39dc6547bea1", "05d218672e84", "0e79183e13b5",
+        };
+        if (!knownRevisions.Any(hash => script.Hash.StartsWith(hash, StringComparison.OrdinalIgnoreCase)))
+            return false;
+        var packaged = LoadPackagedScript(DefaultMirrorTargetCombatFileName);
+        if (string.IsNullOrWhiteSpace(packaged)
+            || ComputeCanonicalSourceHash(script.Source).Equals(
+                ComputeCanonicalSourceHash(packaged), StringComparison.OrdinalIgnoreCase))
+            return false;
+        script.Source = packaged;
+        script.Description = "Active clients mirror a loaded target through bounded actor-watch reconciliation.";
         script.ParticipantFormation = string.Empty;
         script.RequiredResources = LuaResourceKind.GameActions;
         script.DeclaredCapabilities = ["legacy.flat-api", "mop.actions", "mop.events", "mop.game-state"];

@@ -19,6 +19,10 @@ public sealed class EventsLuaCapabilityProvider : ILuaCapabilityProvider {
 
     public void Register(LuaApiRegistrationContext registration) {
         var events = registration.GetOrCreateModule("events");
+        events["set_game_sampling"] = new LuaFunction((call, _) => {
+            Hub(registration).GameSamplingEnabled = call.GetArgument<bool>(0);
+            return new ValueTask<int>(call.Return());
+        });
         events["subscribe"] = new LuaFunction((call, _) => {
             var name = RequiredString(call, 0);
             Hub(registration).RegisterInterest(name);

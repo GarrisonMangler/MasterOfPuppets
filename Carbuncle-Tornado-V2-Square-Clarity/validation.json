@@ -1,0 +1,51 @@
+{
+  "sourceName": "Carbuncle: Tornado V2",
+  "sourceSnapshotHash": "9506F824E9C4F9DBAF2DBFEBAA509ED5D9917A534065C95DA39867B4A9EFAE56",
+  "participantBlocks": 32,
+  "pathCases": 2304,
+  "unchangedCircleTriangleFallbackCases": 1728,
+  "validatedSquareCases": 576,
+  "changedPlacementLines": 3072,
+  "changedWaitLines": 3072,
+  "presets": {
+    "medium": {
+      "HalfSides": [
+        1.75,
+        2.75,
+        3.75,
+        4.75
+      ],
+      "Step": 1.15
+    },
+    "small": {
+      "HalfSides": [
+        1.25,
+        2.0,
+        2.75,
+        3.5
+      ],
+      "Step": 0.9
+    },
+    "large": {
+      "HalfSides": [
+        2.25,
+        3.5,
+        4.75,
+        6.0
+      ],
+      "Step": 1.4
+    }
+  },
+  "benchmark": {
+    "lines": 1057,
+    "variables": 10,
+    "repeats": 10,
+    "msPerLap": 3.19774,
+    "bytesPerLap": 1497478,
+    "gen0Collections": 1
+  },
+  "liveConfigurationModified": false,
+  "pluginSourceModified": false,
+  "startupBundleModified": false,
+  "inGameTested": false
+}

@@ -1,0 +1,230 @@
+Swirling Vortex debug handoff
+Date: 2026-08-28
+Checkout: C:\Users\john\OneDrive\Music\MasterofPuppets
+Do not implement the recommended next steps until asked. Continue from this file.
+
+==============================================================================
+1. Goals (original)
+==============================================================================
+
+Launch:
+  /cwl2 mopluarun "Swirling Vortex" -var=$anchor="<t>"
+
+Stop:
+  /cwl2 mopluastop
+
+Target the anchor first. Desired behavior:
+
+  - A rotating circle of whoever receives the command (not a hardcoded 32).
+  - Two rings from walk/run state: walkers inside, runners outside.
+  - Track the selected target precisely when it moves. Do not lose cohesion.
+  - Equal spacing. Do not stack. Not a semicircle or two overlapping groups.
+  - No screen jitter on participating clients.
+
+==============================================================================
+2. How to work on this tomorrow
+==============================================================================
+
+Dalamud dev plugin watches Release, not Debug:
+
+  C:\Users\john\OneDrive\Music\MasterofPuppets\MasterOfPuppets\bin\Release\MasterOfPuppets.dll
+
+dotnet test only builds Debug. Deploy with:
+
+  .\tools\Build-HotReload.ps1 -Deploy
+
+The in-game script is the copy in:
+
+  %APPDATA%\XIVLauncher\pluginConfigs\MasterOfPuppets.json
+
+Packaged source is:
+
+  MasterOfPuppets\Lua\Scripts\swirling_vortex.lua
+
+On plugin load, LuaScriptCatalog.UpgradeUnmodifiedSwirlingVortex replaces the
+saved script if it still looks like an older packaged copy (hash list, or
+source containing get_group, requested_inner, or visible_circle). Custom
+editor edits are not overwritten.
+
+Do not edit MasterOfPuppets.json unless explicitly asked. Do not push.
+
+==============================================================================
+3. Current code (end of 2026-08-28)
+==============================================================================
+
+Script (frozen at launch):
+  - mop.visible_roster() / get_slot / get_count once
+  - mop.is_walking() once -> inner 1.50 or outer 2.80 (outer at least inner+1.20)
+  - spacing 0.80, speed 1.00 rad/s, radius grows with count then caps
+  - phase = slot/count * 2pi, same omega for both rings
+  - trajectory_update publishes world-relative offset + tangent facing
+
+Launch roster:
+  - Conductor compact-filters the formation/group to visible + local IPC peers
+    (LuaParticipantResolver.CompactVisible)
+  - Chat Sync now puts that CID list in the envelope even when a Participant
+    Formation is assigned
+  - Receivers use the envelope list (must be a subset of the local formation)
+    instead of expanding back to the full 32-person formation
+
+Movement (LuaTrajectoryController.Update):
+  - Every framework tick: world slot = live anchor position + relative offset
+  - If the target is moving, add 0.16s of target translation only (not orbit)
+  - MoveTo Natural, precision 0.08, no relative movement, no pursuit-of-slot
+  - faceDirection = null, so Natural faces TOWARD THE SLOT, not the Lua tangent
+  - Rate-limit facing only when planar error <= 0.45 yalms; otherwise snap face
+  - Walk/run is not overwritten while running
+  - LuaTrajectoryFollower still runs for diagnostics only; it does not steer
+
+==============================================================================
+4. Attempts and reported outcomes
+==============================================================================
+
+Attempt A — Diagnose the packaged single-lane script
+What: Packaged swirling_vortex.lua used get_group("32 Ordered") and a hardcoded
+      32-name fallback. Anyone not in that list started Lua and immediately
+      returned. Catalog described a single 3-yalm lane. LuaTrajectoryController
+      forced walk/run from speed, computed LuaTrajectoryFollower, then ignored
+      it and steered at a raw world sample. FaceDirection via AutoFace ran
+      constantly (jitter).
+Outcome: Explains missing people, one ring, stacking on r=3 with 32 people,
+         cohesion loss, jitter. Not yet a playable two-ring vortex.
+
+Attempt B — Two rings from gait + slot/count + follower steering
+What: Script used mop.get_slot()/get_count(), walk inner / run outer, auto
+      radius from count and walk/run pace (outer could grow to ~10 yalms).
+      Controller preserved walk/run, used follower LookAheadTarget, relative
+      movement, rate-limited tangent facing. Built Debug only at first.
+Outcome: Dalamud did not reload (watches Release). After
+      Build-HotReload.ps1 -Deploy, live test continued.
+
+Attempt C — User: circle too large walking and running; they bunch; want
+          equal distance between neighbors. Then "stop".
+What: Work stopped. No further size/spacing change in that turn.
+Outcome: Large radii and bunching still present.
+
+Attempt D — "Not necessarily 32. Needs to know who is online." Then
+          "is_visible from the roster."
+What: Agreed is_visible = roster member currently in this client's object
+      table, not merely saved in the formation. Added is_visible on
+      participant snapshots. Script compacted visible members every loop and
+      used smaller radii (inner 1.50, outer 2.20).
+Outcome: See Attempt E.
+
+Attempt E — User: deforms when the target moves; should be laser-focused;
+          looks like a semicircle; members not equally spaced.
+What: Two causes:
+      1) Fallback or uncompacted 32-slot phases put consecutive visible
+         people on half the ring (semicircle).
+      2) Movement only applied on new Lua samples (30 Hz) using a stale
+         anchor, so the ring chased a ghost and packed behind the target.
+      Fix: live anchor + offset every framework tick; compact visible;
+      stop using follower look-ahead as the MoveTo destination.
+Outcome: See Attempt F.
+
+Attempt F — User: walk mode, two groups on top of each other. Target moves:
+          scatter and deform. Run mode: not cohesive, constantly mutating.
+          Target moves: scatter and reform.
+What: Root causes:
+      1) Each PC compacted locally. PC1 slot 0 and PC2 slot 0 were the same
+         world point -> two bands stacked.
+      2) Visibility and is_walking were re-read every tick. Object-table
+         flicker changed n, phases, and inner/outer radius -> mutating ring.
+      3) Rate-limited facing toward a chasing slot peeled people off, then
+         they reformed when the target stopped.
+      Fix: conductor freezes visible CID list at launch and sends it to every
+      client; freeze slot/count/gait/radius in Lua; larger outer ring (2.80);
+      0.16s translation lead; immediate facing when far from slot.
+Outcome: Latest live report: facing is wrong when run mode is on.
+      Cohesion/stacking/moving-target after this deploy were not separately
+      re-confirmed in this session.
+
+Attempt G — Current facing path (the open bug)
+What: MoveTo is called with faceDirection: null. FormationNaturalMovement
+      therefore faces the tracking point (the slot), i.e. a chord toward the
+      next point on the circle, not the tangent Lua already computed
+      (math.atan(nx-x, nz-z)). In run mode that chord points more inward
+      because the slot is farther ahead per second, so wrong facing is more
+      obvious. Walk mode is slower so the chord is closer to the tangent.
+Outcome: Reported: facing direction is wrong when run mode is on.
+      Not implemented. Stopped here.
+
+==============================================================================
+5. Likely remaining issues (not fully re-tested)
+==============================================================================
+
+Facing, run mode (confirmed by user):
+  - Controller discards sample.FacingRadians.
+  - Natural faces the slot, not orbit tangent, not the target, not "look at
+    center." Need to confirm which of those is desired.
+
+Shared roster:
+  - Conductor must see the performers when the command is sent. Anyone not
+    visible to the conductor is omitted for the whole run.
+  - Chat Sync 500-byte ceiling still applies if the visible CID list is large.
+
+Gait rings:
+  - Gait is sampled once at launch. Toggling walk/run mid-show will not
+    change rings until a new run.
+  - Mixed walk/run at the same compact angles sit on two radii (inner/outer).
+    That is intentional but can look uneven if the group is mixed.
+
+Moving target:
+  - Independent "run toward slot" is still not a rigid body. Translation lead
+    helps but can overshoot. Walkers cannot physically match a running target.
+
+Saved script vs packaged:
+  - If the Script Editor still has an old copy, none of the later script
+    changes will run until that copy is upgraded or replaced.
+
+==============================================================================
+6. Recommended next steps (do not implement yet)
+==============================================================================
+
+1. Fix run-mode facing first (highest confidence, matches the last report).
+   In LuaTrajectoryController.MoveTo, pass sample.Value.FacingRadians as
+   faceDirection and consider useFormationRelativeMovement: true so they
+   face the orbit tangent (or the target) while strafing onto the slot.
+   Confirm with the user whether facing should be:
+     a) tangent / direction of travel around the ring (what Lua publishes)
+     b) toward the anchor / center
+     c) toward world movement of the target when translating
+   Run mode should use the same rule as walk; it is just more visible at
+   speed. Re-test walk and run, standing target, then moving target.
+
+2. After facing looks right, re-test cohesion on a moving target.
+   If they still scatter, next lever is movement, not roster:
+     - Face the slot immediately only for large error; keep tangent when close
+     - Reduce or drop the 0.16s translation lead if they overshoot
+     - Optionally use relative movement (forward/strafe/back) in the tangent
+       frame so translating the circle does not require everyone to yaw
+       toward the target's new position
+
+3. If two groups still stack after facing is fixed, log the frozen roster
+   (slot, count, CID, radius, walking) on each client at launch and compare
+   across PCs. Stacking now should only happen if two PCs received different
+   envelope CID lists or an old script is still running.
+
+4. If the ring still mutates, confirm the saved Lua source in the plugin
+   config actually contains "Freeze membership" / visible_roster once, not
+   the per-tick visible_circle loop.
+
+5. Only after 1-4, consider whether walk/run should be live instead of frozen,
+   and whether compacting should be conductor-visible vs "all who started Lua."
+
+==============================================================================
+7. Key files
+==============================================================================
+
+  MasterOfPuppets/Lua/Scripts/swirling_vortex.lua
+  MasterOfPuppets/Lua/LuaTrajectoryController.cs
+  MasterOfPuppets/Lua/LuaParticipantResolver.cs   (CompactVisible, IsVisible)
+  MasterOfPuppets/Lua/LuaScriptCatalog.cs
+  MasterOfPuppets/Lua/LuaScriptManager.cs
+  MasterOfPuppets/Ipc/IpcProvider.Lua.cs
+  MasterOfPuppets/Game/Movement/FormationNaturalMovementStrategy.cs
+  MasterOfPuppets/Lua/Choreography/LuaTrajectoryFollower.cs  (diagnostics only)
+  tools/Build-HotReload.ps1
+  MasterOfPuppetsTests/LuaScriptRunnerTests.cs
+    BuiltIn_Swirling_Vortex_WalkAndRun_UseSeparateRadii
+    BuiltIn_Swirling_Vortex_Compacts_Visible_Roster_Members

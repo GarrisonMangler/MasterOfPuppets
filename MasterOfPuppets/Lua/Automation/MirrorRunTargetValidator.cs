@@ -50,6 +50,10 @@ internal static class MirrorRunTargetValidator {
         string.Equals(
             scriptName,
             LuaScriptCatalog.MirrorScriptV2Name,
+            StringComparison.OrdinalIgnoreCase)
+        || string.Equals(
+            scriptName,
+            LuaScriptCatalog.DefaultMirrorTargetCombatName,
             StringComparison.OrdinalIgnoreCase);
 
     internal static bool RequiresPlayerRunTarget(string? scriptName) =>

@@ -1,0 +1,717 @@
+$startup = 0.5
+$r1 = 2
+$d1 = 1.414214
+$step1 = 0.35
+$r2 = 3
+$d2 = 2.12132
+$step2 = 0.55
+$r3 = 4
+$d3 = 2.828427
+$step3 = 0.70
+$r4 = 5
+$d4 = 3.535534
+$step4 = 0.90
+
+# Garrison Mangler@Sargatanas - ring 1
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace 0 0 -$r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 $r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moploopend
+
+# Boo Mangler@Sargatanas - ring 1
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 $r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 -$r1 "$mop_origin"
+/mopphasewait $step1
+/moploopend
+
+# Giovanni Mangler@Sargatanas - ring 1
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 $r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 -$r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moploopend
+
+# Bertucci Mangler@Sargatanas - ring 1
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 $r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 -$r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moploopend
+
+# Sarducci Mangler@Sargatanas - ring 1
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace 0 0 $r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 -$r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moploopend
+
+# Achenarius Mangler@Sargatanas - ring 1
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 -$r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 $r1 "$mop_origin"
+/mopphasewait $step1
+/moploopend
+
+# Maltheusen Mangler@Sargatanas - ring 1
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 -$r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 $r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moploopend
+
+# Walter Mangler@Sargatanas - ring 1
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 -$r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 -$d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moppetplace $d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace 0 0 $r1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$d1 0 $d1 "$mop_origin"
+/mopphasewait $step1
+/moppetplace -$r1 0 0 "$mop_origin"
+/mopphasewait $step1
+/moploopend
+
+# Wind-up Garrison@Sargatanas - ring 2
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace 0 0 -$r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 $r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moploopend
+
+# Annabelle Mangler@Sargatanas - ring 2
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 -$r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 $r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moploopend
+
+# Brittany Mangler@Sargatanas - ring 2
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 -$r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 $r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moploopend
+
+# Kimberly Mangler@Sargatanas - ring 2
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 -$r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 $r2 "$mop_origin"
+/mopphasewait $step2
+/moploopend
+
+# Rebecca Mangler@Sargatanas - ring 2
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace 0 0 $r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 -$r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moploopend
+
+# Roberto Mangler@Sargatanas - ring 2
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 $r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 -$r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moploopend
+
+# Thaddeus Mangler@Sargatanas - ring 2
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 $r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 -$r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moploopend
+
+# Vivian Mangler@Sargatanas - ring 2
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace -$d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 $r2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 $d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $r2 0 0 "$mop_origin"
+/mopphasewait $step2
+/moppetplace $d2 0 -$d2 "$mop_origin"
+/mopphasewait $step2
+/moppetplace 0 0 -$r2 "$mop_origin"
+/mopphasewait $step2
+/moploopend
+
+# Artemis Potato@Sargatanas - ring 3
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace 0 0 -$r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 $r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moploopend
+
+# Hermes Potato@Sargatanas - ring 3
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 $r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 -$r3 "$mop_origin"
+/mopphasewait $step3
+/moploopend
+
+# Athena Potato@Sargatanas - ring 3
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 $r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 -$r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moploopend
+
+# Gaia Potato@Sargatanas - ring 3
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 $r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 -$r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moploopend
+
+# Nyx Potato@Sargatanas - ring 3
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace 0 0 $r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 -$r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moploopend
+
+# Apollo Potato@Sargatanas - ring 3
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 -$r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 $r3 "$mop_origin"
+/mopphasewait $step3
+/moploopend
+
+# Hephaestus Potato@Sargatanas - ring 3
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 -$r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 $r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moploopend
+
+# Poseidon Potato@Sargatanas - ring 3
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 -$r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 -$d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moppetplace $d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace 0 0 $r3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$d3 0 $d3 "$mop_origin"
+/mopphasewait $step3
+/moppetplace -$r3 0 0 "$mop_origin"
+/mopphasewait $step3
+/moploopend
+
+# Kazuko Aura@Sargatanas - ring 4
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace 0 0 -$r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 $r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moploopend
+
+# Barnabus Mangler@Sargatanas - ring 4
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 -$r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 $r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moploopend
+
+# Cassandra Mangler@Sargatanas - ring 4
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 -$r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 $r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moploopend
+
+# Ellis Mangler@Sargatanas - ring 4
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace $d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 -$r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 $r4 "$mop_origin"
+/mopphasewait $step4
+/moploopend
+
+# Amelia Mangler@Sargatanas - ring 4
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace 0 0 $r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 -$r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moploopend
+
+# Madeline Mangler@Sargatanas - ring 4
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 $r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 -$r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moploopend
+
+# Sabrina Mangler@Sargatanas - ring 4
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 $r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 -$r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moploopend
+
+# Martin Mangler@Sargatanas - ring 4
+/moptarget "$mop_origin"
+/mopphasewait $startup
+/moploopstart
+/moppetplace -$d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace -$d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 $r4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 $d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $r4 0 0 "$mop_origin"
+/mopphasewait $step4
+/moppetplace $d4 0 -$d4 "$mop_origin"
+/mopphasewait $step4
+/moppetplace 0 0 -$r4 "$mop_origin"
+/mopphasewait $step4
+/moploopend

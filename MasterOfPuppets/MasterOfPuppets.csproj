@@ -76,6 +76,7 @@ Use it to trigger custom actions like emotes, minions, mounts, glamour changes, 
       <DependentUpon>Language.resx</DependentUpon>
     </Compile>
     <!-- <Content Include="Assets\**\*.png" CopyToOutputDirectory="Always" /> -->
+      <EmbeddedResource Include="Lua\Scripts\mirror_target_combat.lua" />
       <Content Include="Lua\Scripts\*.lua">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <TargetPath>Scripts\%(Filename)%(Extension)</TargetPath>

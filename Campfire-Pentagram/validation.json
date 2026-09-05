@@ -1,0 +1,23 @@
+{
+  "Participants": 32,
+  "UniqueFirePoints": 32,
+  "TipFires": 5,
+  "IntersectionFires": 5,
+  "LineFires": 22,
+  "RadiusYalms": 6,
+  "SpawnOffsetYalms": 1,
+  "FormationOriginPointUnassigned": true,
+  "FormationFacingDegrees": 0,
+  "ProductionRotationChecks": 256,
+  "ProductionSanitizerChecks": 64,
+  "ProductionExpansionChecks": 64,
+  "AutomaticTimedSummon": false,
+  "PluginSourceModified": false,
+  "LiveConfigurationModified": false,
+  "InGameTested": false,
+  "IndependentOutlinePointChecks": 32,
+  "IndependentIntersectionChecks": 5,
+  "MirrorSymmetric": true,
+  "MinimumFireCentreSpacingYalms": 0.898056,
+  "FormationSharePrefix": "MOPF1:"
+}

@@ -34,10 +34,21 @@ public sealed class RigidFormationPoseTrackerTests {
         var tracker = new RigidFormationPoseTracker();
         tracker.Step(Vector3.Zero, 0f, 10f, 6f, 1000);
 
-        var pose = tracker.Step(Vector3.Zero, 0.1f, 10f, 6f, 1100);
+        var pose = tracker.Step(Vector3.Zero, 0.04f, 10f, 6f, 1100);
 
         Assert.False(pose.IsTurning);
         Assert.Equal(0f, pose.Rotation, precision: 5);
+    }
+
+    [Fact]
+    public void SmallStationaryTurnStartsRotatingTheFormationFrame() {
+        var tracker = new RigidFormationPoseTracker();
+        tracker.Step(Vector3.Zero, 0f, 10f, 6f, 1000);
+
+        var pose = tracker.Step(Vector3.Zero, 0.1f, 10f, 6f, 1100);
+
+        Assert.True(pose.IsTurning);
+        Assert.InRange(pose.Rotation, 0.059f, 0.061f);
     }
 
     [Fact]

@@ -36,6 +36,7 @@ public sealed class LuaEventHub : IDisposable {
     private long _consumed;
     private long _dropped;
     private bool _completed;
+    public bool GameSamplingEnabled { get; set; } = true;
 
     public LuaEventHub(int capacity = DefaultCapacity) {
         if (capacity is <= 0 or > 4096)

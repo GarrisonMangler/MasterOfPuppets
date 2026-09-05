@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,6 +32,10 @@ internal sealed class LuaScriptManager : IDisposable {
     private readonly LinkedList<LuaRunDiagnosticsSnapshot> _diagnosticHistory = new();
     private string? _primaryRunId;
     private string _idleDetail = "idle";
+    private long _nextPerformanceLog;
+    private double _updateMilliseconds;
+    private double _maxUpdateMilliseconds;
+    private int _updateCount;
 
     public LuaScriptManager(Plugin plugin) {
         _plugin = plugin;
@@ -466,6 +471,7 @@ internal sealed class LuaScriptManager : IDisposable {
     }
 
     public void Update() {
+        var started = Stopwatch.GetTimestamp();
         _actorWatches.Update(Environment.TickCount64);
         ManagedLuaRun[] runs;
         lock (_stateLock)
@@ -476,6 +482,19 @@ internal sealed class LuaScriptManager : IDisposable {
             run.Trajectory.Update();
             run.ActorFollow.Update();
             ObserveGameEvents(run);
+        }
+        if (runs.Length == 0)
+            return;
+        var elapsed = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+        _updateMilliseconds += elapsed;
+        _maxUpdateMilliseconds = Math.Max(_maxUpdateMilliseconds, elapsed);
+        _updateCount++;
+        if (Environment.TickCount64 >= _nextPerformanceLog) {
+            _nextPerformanceLog = Environment.TickCount64 + 10000;
+            DalamudApi.PluginLog.Information(
+                $"[LuaPerf] runs={runs.Length} updateAvgMs={_updateMilliseconds / _updateCount:F3} updateMaxMs={_maxUpdateMilliseconds:F3} frames={_updateCount} {PluginLuaActionFacade.TakePerformanceSummary()}");
+            _updateMilliseconds = _maxUpdateMilliseconds = 0;
+            _updateCount = 0;
         }
     }
 
@@ -495,6 +514,8 @@ internal sealed class LuaScriptManager : IDisposable {
     }
 
     private static void ObserveGameEvents(ManagedLuaRun run) {
+        if (!run.Events.GameSamplingEnabled)
+            return;
         var now = DateTimeOffset.UtcNow;
         if (!run.GameEvents.ShouldObserve(now))
             return;

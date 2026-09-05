@@ -1,0 +1,33 @@
+/moppetplace 0 0 -1 target
+/mopwait 0.25
+/moppetplace 0.3827 0 -0.9239 target
+/mopwait 0.25
+/moppetplace 0.7071 0 -0.7071 target
+/mopwait 0.25
+/moppetplace 0.9239 0 -0.3827 target
+/mopwait 0.25
+/moppetplace 1 0 0 target
+/mopwait 0.25
+/moppetplace 0.9239 0 0.3827 target
+/mopwait 0.25
+/moppetplace 0.7071 0 0.7071 target
+/mopwait 0.25
+/moppetplace 0.3827 0 0.9239 target
+/mopwait 0.25
+/moppetplace 0 0 1 target
+/mopwait 0.25
+/moppetplace -0.3827 0 0.9239 target
+/mopwait 0.25
+/moppetplace -0.7071 0 0.7071 target
+/mopwait 0.25
+/moppetplace -0.9239 0 0.3827 target
+/mopwait 0.25
+/moppetplace -1 0 0 target
+/mopwait 0.25
+/moppetplace -0.9239 0 -0.3827 target
+/mopwait 0.25
+/moppetplace -0.7071 0 -0.7071 target
+/mopwait 0.25
+/moppetplace -0.3827 0 -0.9239 target
+/mopwait 0.25
+/moploop

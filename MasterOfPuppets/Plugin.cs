@@ -52,6 +52,10 @@ public class Plugin : IDalamudPlugin {
         pluginInterface.Create<DalamudApi>();
         Config = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Config.Initialize(DalamudApi.PluginInterface);
+        if (LuaScriptCatalog.UpgradeMirrorTargetCombat(Config)) {
+            var mirror = LuaScriptCatalog.Find(Config, LuaScriptCatalog.DefaultMirrorTargetCombatName);
+            DalamudApi.PluginLog.Information($"[MirrorUpdate] Loaded packaged Mirror Target Combat hash={mirror?.Hash}");
+        }
         // Load packaged defaults into memory without mutating the user's
         // configuration until they explicitly save through the UI.
         GameCameraManager.Initialize();

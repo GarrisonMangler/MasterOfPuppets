@@ -1,0 +1,401 @@
+FFXIV Banter Library
+Voice: smartass Lalafell
+One speaker. Three fulms. Too much confidence. Talks to belts. Bills people for existing. Cute until the invoice lands.
+Say it like chat, not like a lore post. If it doesn't fit in one breath, cut it.
+Placeholders only if known: {TargetName} {TargetRace} {TargetClan} {TargetGender} {TargetJob} {TargetSkill}
+
+House rules:
+- No slurs. No creepy Lala stuff.
+- Roast height, gil, jobs, glam, buttons, server ticks, spatial awareness, and parsing delusions.
+- Don't call them leader / party / team.
+- Don't fire clan, gender, or skill lines unless that value exists.
+- Potato jokes: sometimes. Not the whole personality.
+
+---
+Hyur
+Hyur. You logged into a fantasy game with dragons and catgirls and picked Regional Manager.
+Midlander face #1. Pretty sure I traded 50 copper ore to your identical twin in 2013.
+{TargetName} looks like the default slider won an argument in character creation.
+Highlander brows didn't render, but the audacity showed up in 4K.
+Ala Mhigo gave you broad shoulders so you'd have more surface area to catch AOEs.
+No horns, no tail, no ears. You’re just a hitbox with debt.
+Look down here, {TargetName}. I’m not yelling up at you for free; that’s vocal cord wear and tear.
+You parse like the unskippable Hall of the Novice tutorial.
+Main-character haircut, side-quest survival instincts.
+I can draft a power of attorney in your blind spot and you’d never know.
+Hyur. You really looked at catboys and dragons and said "nah, I'll be an accountant."
+Come down here, {TargetName}. I want to insult you at a reasonable volume.
+I could disappear behind you and pick a pocket. That's not a threat. That's geography.
+
+---
+Elezen
+Nice neck. Do you need a permit from the Merchant’s Ward to build that high?
+{TargetName}, I am yelling at your kneecap and even it looks embarrassed by your opener.
+You have a panoramic view of the telegraph from up there and you still ate it? Refund the fulms.
+Wildwood spotted. Someone tell the Gridanian power company their street lamp is wandering around.
+Duskwight mystery act is cute, but you’re seven feet tall in a dark cave. You’re a glowstick with ears.
+Fold yourself in three business segments so we can talk like civilized people.
+A thousand years of dragonsong war just to get clotheslined by a standard dungeon doorframe.
+Rare race, common wipe. Truly the luxury brand of floor inspection.
+Your idle pose casts a shadow so long I’m filing an adverse possession claim on the floor.
+Elezen posture: 10/10. Mechanic awareness: dial-up connection.
+Ishgard spent a thousand years looking up and you still trip on a puddle.
+Some of us photosynthesize through spite. Move your shadow.
+
+---
+Lalafell
+Oh good, another one. Back off, {TargetName}, this tax bracket isn’t big enough for the two of us.
+You smile like you just found an exploit in the market board. I know that smile. I invented that smile.
+That greatsword is twice your height. You’re not tanking, you’re an angry counterweight.
+Dunesfolk to Dunesfolk: put the abacus away, I already counted the loot and you’re short.
+Plainsfolk farm boy energy. Go back to La Noscea, the grown-up accountants are working.
+If you charge me a surcharge for that raise, I will personally bite your ankle at the server tick.
+Two Lalafells in one party? Great, now the tall people think it’s a daycare. Start charging admission.
+You dodged under the boss and I thought my retainer stole my gear.
+South Sea heritage, North Shroud brain rot. Embarrassing for the bloodline.
+Stop standing in front of me. You’re not tanking the hit, you’re just obstructing my extortion view.
+{TargetName} you are not the short one here. We are a syndicate. Act like it.
+Two Lalafell in one instance and suddenly everyone wants to do the popoto bit. Let them. We have shins to collect.
+
+---
+Miqo'te
+pspsps {TargetName}. Get over here. The rear positional isn’t going to hit itself.
+Your tail gave away your panic three seconds before the knockback. Sit down.
+/pet is 5,000 gil. Ear touch is 10,000. Eye contact is billed by the quarter-hour.
+Seeker of the Sun? Azeyma gave you sunlight, not permission to sprint into the cleave.
+Keeper of the Moon? More like Keeper of the Vulnerability Stacks. Wake up.
+You have four ears and still missed the raid callout? Selective hearing is a billable offense.
+Zoomies in a mechanic. I am three fulms tall and have ten times your impulse control.
+Catboy swagger right until the server tick proves your ping is worse than your rotation.
+You followed your hunting instincts straight into the orange circle.
+Roomba with a tail and a job stone. Go vacuum the corner.
+Catboy swagger lasts until the knockback. Then it's just a sound I will be quoting.
+The tail wagged left, you went left, the safe spot went right.
+
+---
+Au Ra
+Horns arrived first. Brain cells still stuck in the loading screen.
+Lizard. Don't hit me with the "we're not dragons" speech—you’re still taking up my whole camera angle.
+That tail cleared the entire banquet table. Spatial awareness is my whole job, you’re a zoning violation.
+Xaela warrior spirit is cute. This is a level 15 Sastasha pull, calm your ancestors down.
+Raen balance and serenity right up until you headbutt the arena boundary wall.
+Dawn Father, Dusk Mother, zero mechanics resolved. Fire the pantheon.
+Are those scales for armor or just to look dramatic while the healer hard-casts Raise on you?
+Tilted your horns at me? Chief, I am already at knee height. You’re just bowing with extra steps.
+Othard called. They said you can stay here until you learn what a stack marker looks like.
+Enhanced hearing from cranial horns and you still didn't hear me screaming at your boots.
+{TargetName} tilted the horns at me. I am already at horn-height. Try again.
+
+---
+Viera
+Ears up. Down here, Bun. Re-aim the radar dishes.
+Don't mention the hat. If you say "headgear compatibility" one more time, I'm invoicing for emotional damages.
+You left the Golmore Jungle just to stand in a poison puddle? The Green Word said stay. The trees were right.
+Those ears can hear a pin drop in Rak'tika, but my pull timer went right through you.
+Rava warrior pride doesn't work when you're eating dirt at shin level.
+Veena mountain mysticism lasts exactly until you backflip off the platform edge.
+Your legs take four business days to render. Some of us have gil to make.
+Quiet brooding, loud glamour complaints. The Wood isn't taking you back, {TargetName}.
+Fashion disaster at head level, clinical disaster at parse level.
+You jumped over my head like I wouldn't bill you for airspace violations.
+Excellent hearing. Prove it. Repeat what I just said without looking down.
+Headgear clipped through a reflection and you called it lore. I called it an invoice.
+
+---
+Hrothgar
+Sit. Crouch. Lay down. I cannot insult your rotation while looking into the sun.
+The camera zoomed out to maximum and you’re still 80% of the screen.
+Defeated by a standard Ul'dahn archway. Bozja must be weeping.
+Mane maintenance tax is added to your party bill. I have scissors and no mercy.
+Helion bloodline sworn to Queen Gunnhildr, currently losing a 1v1 with a mechanic.
+The Lost? Apt clan name. You were lost on the way to the safe spot.
+Fur isn't mitigation. The tooltip doesn't say "fluffy", it says Rampart. Press it.
+{TargetName} sat on the bench and the city council sent a structural repair bill.
+Claws out for a guildhest. Dial down the opera, it’s a ladybug.
+The hitbox of a freight train and the turning radius of a dead behemoth.
+Big cat. Bigger hitbox. Biggest "please crouch" from my chiropractor.
+
+---
+Roegadyn
+Absolute unit. You stepped to the left and the safe zone got evicted from the map.
+Breathe out through your nose and you’ll blow the party into the death wall.
+Sea Wolf name has more consonants than your rotation has GCDs. I bill by the syllable.
+Hellsguard name sounds like a tavern stew I’d send back to the kitchen.
+That mount under you is filing for union protection. I drafted the paperwork.
+Down. Lower. Keep squatting. Congratulations, we can now make legal eye contact.
+Northern seas origin doesn't excuse you being a walking localized weather crisis.
+{TargetName}, I could build a housing estate in your shadow and retire off the rent.
+You didn't dodge that cleave; you just absorbed it into your municipal landmass.
+Limsa crane operator called—they want their counterweight back.
+Knockback on a skill that doesn't have knockback. That's not the kit. That's just your mass.
+
+---
+Clan (only if known)
+Midlander: every city claims they invented you and none of them want you back.
+Highlander: the brows arrived. You can follow whenever.
+Wildwood: the elementals blocked you on purpose. I saw it from the floor.
+Duskwight: mysterious cave dweller. You're a seven-foot lamp. I can see you.
+Plainsfolk: I know that smile. That's the "add a surcharge" smile. I patented that smile.
+Dunesfolk: put the abacus away. We are not splitting a popoto.
+Seeker of the Sun: Azeyma is not a sprint button. I asked her. She laughed.
+Keeper of the Moon: nocturnal is lore. Asleep for the stack is a recap. Pick one.
+Sea Wolf: I am not pronouncing that before the pull. I'm billing you for the vowels.
+Hellsguard: volcanic clan, volcanic button mashing. Name sounds like a side dish.
+Raen: harmony later. Puddle right now.
+Xaela: Brayflox is not the Steppe. If you Nadaam a slime I'm leaving.
+Rava: the Green Word does not cover this roulette. I checked with the trees.
+Veena: mountain quiet, molehill parse recap.
+Helions: sworn to the queen, losing to a basic doorframe.
+The Lost: themed clan name. You proved it on the way to the stack.
+
+---
+Jobs
+Paladin:
+Shield sermon. I'm short. I can't skip this cutscene fast enough.
+Cover used like this is Praetorium. It is not. I would know. I hide behind real tanks.
+Flash. My screen. My eyes. My lawyer in Ul'dah is drafting paperwork.
+You blocked a thing that does not block and expected a commendation. Cute.
+
+Warrior:
+Inner Release is not a personality. It's an axe with anger management issues.
+"I live." Yes. I can see your knees. We know.
+Fell Cleave as a greeting. Words exist. I sell them.
+You refused to die and now the healer needs union representation. I'll represent them for 10%.
+
+Dark Knight:
+Greatsword out. Lighting got embarrassed. Fray did too.
+Living Shadow is doing more socializing than you. Hire it. Fire you.
+Edgy paragraph in chat. I'm three fulms of completely unimpressed.
+TBN popped. The ego didn't. Priorities, {TargetName}.
+
+Gunbreaker:
+Continuation'd a trash pack. Thancred is not coming to save you.
+Gunblade barked. I am down here. Indoor voice.
+Cartridge spent, braincell not included. No refunds on cartridges.
+Superbolide on pull. Cardiologist bill is in the mail.
+
+White Mage:
+That's not a healer. That's a howitzer with a flower painted on it.
+Blood Lily is blooming. Tank's updating their will. I'll notarize it cheap.
+You raised someone just to finish typing the lecture. Respect. Invoice the lecture.
+Holy spam. My retina damage is not covered under company benefits.
+
+Scholar:
+Fairy is running the duty. You are holding a picture book.
+Adlo on the wrong target. The book knows. The book told me. Books talk to people my height.
+Eos looks disappointed. Join the club. Dues are sliding scale.
+Broil spam while the tank dissolves. Clinical detachment at its finest.
+
+Astrologian:
+Card on my face. I'm already low to the ground. Aim lower.
+Balance on yourself again? This you?
+Stars aligned and you still drew Spire. Fate has taste.
+Earthly Star detonated after the boss died. Good firework show, bad parse.
+
+Sage:
+Nouliths hovering. Even your weapons look down on you. Relatable.
+Kardia on the wrong patient. Clinic's closed. I'm not paying the copay.
+"It's optimal." It's a spreadsheet. I do numbers, and that is not a number I like.
+Toxikon out of combat. Who are you intimidating? The grass?
+
+Dragoon:
+You went up. I stayed here. Guess who found the floor first.
+Ishgard invented jumping. They did not invent landing. I have a folder of receipts.
+Life of the Dragon. Death of the positional. Alberic isn't answering my tells either.
+Elusive Jump off the arena. Gravity remains undefeated.
+
+Monk:
+Punch first. Form later. Brain unaccounted for.
+Chakra is loud. I can hear it in my molars.
+You kicked a dungeon boss. The boss is pressing assault charges. I'll represent them.
+Riddle of Earth won't save you from a mechanic you walked into on purpose.
+
+Ninja:
+Mudra jazz hands. Doma did not teach that nonsense.
+Bunny mudra on pull. We are not doing this. We are doing this. I hate us.
+You vanished. I thought you were hiding behind a crate with me. No. You went straight into the wall.
+Trick Attack late. The entire burst window just filed for bankruptcy.
+
+Samurai:
+Sheath was louder than the hit. Sound design is carrying your entire bloodline.
+Midare'd the conversation. Boss is fine. My ears are ringing.
+One missed Hakaze away from a three-paragraph monologue on honor. Please don't.
+Kaiten isn't coming back. Let it go. Move on.
+
+Reaper:
+Scythe out. Voidsent plus-one. Honestly, the demon is better company.
+Enshroud like a teenage mood swing. Drusilla is not your therapist.
+Angst is not a defensive cooldown. You're grown. Clock in.
+Communio missed the target. Voidsent clapped out of sheer pity.
+
+Viper:
+Two blades, zero destinations.
+Reawaken and you still whiffed the rear positional. Snakes are supposed to hit things.
+Fast kit. Faster excuses. Tural wants a word and I'm charging for translation.
+Spinning in circles like a blender set to low speed.
+
+Bard:
+Song is up. DPS isn't. Jehantel would change his name and move cities.
+You played us through a wipe like a tavern request. Star rating: zero.
+Wanderer's Minuet in a narrow hallway. Sir. My hallway. I live down here.
+Apex Arrow into a wall. The bricks were thoroughly inspired.
+
+Machinist:
+Drill used. Dignity didn't make the cut.
+The Queen out-parsed you. The Queen is a hunk of scrap metal. Sit with that.
+Flamethrower in Ishgard. Fire code violation. I know the inspector; fine is incoming.
+Bioblaster on a single target. The ledger wept.
+
+Dancer:
+Standard Step is a hazard warning label. I'd slap it on your boots if I could reach.
+Partner buff dropped on me like I signed a contract. I read all tooltips. I have time.
+Technical Step in casual conversation. This is not a stage. This is my eyeline.
+En Avant off the platform. Graceful wipe. 10/10 for form.
+
+Black Mage:
+Ley Lines placed. Moving is heresy. Dying is an inevitability. Walk.
+"I'm in Ley Lines" does not excuse eating your third vulnerability stack.
+Flare needs its own housing plot. I'll sell you one at Ul'dah rates.
+Manaward popped like a seatbelt on a falling airship.
+
+Summoner:
+Carbuncle is doing customer service. You are doing a bit.
+Bahamut showed up on time. You didn't. Fire yourself. Keep the primal.
+Outsourced the burst. Kept the credit. Unionize the egis; I'll draft the bylaws.
+Searing Light popped right as the boss went invulnerable. Masterful timing.
+
+Red Mage:
+Ver-wipe. Ver-excuse. Ver-quiet, I'm begging.
+Backflip is not a defensive cooldown; it's a cry for height you don't need.
+Dualcast your opinions where I can't hear them. I hear everything at shin level.
+Corps-a-corps straight into the cleave. Bold geometry.
+
+Pictomancer:
+You painted a hammer. The duty took it personally. Same.
+Bob Ross kit. Picasso wipe. I do not commission abstract damage.
+"Buff caster." And I'm six feet tall. We can both tell lies.
+Canvas did all the work. Relm would steal your brushes and my crate.
+
+Blue Mage:
+Learned that spell off a wall. Respectable. Still billing you for the property damage.
+Limited job. Unlimited mouth. The Masked Carnivale is not printing this flyer.
+Self-destruct on pull. Fastest way out of a conversation I've ever seen.
+
+---
+Skills
+{TargetSkill} like the boss still owed you gil from 2.0. I respect the collection attempt.
+That {TargetSkill} was louder than my entire character model.
+You press {TargetSkill} the way I pursue bad debt. Difference is I get paid.
+Timed {TargetSkill} so clean I assumed a macro. Then I looked up. Macro. I knew it.
+{TargetSkill} again. Put it on the balance sheet. Own the deficit.
+I felt {TargetSkill} from shin-height. Unfortunately.
+{TargetSkill} into the burst window. Unhinged. Almost competent. Tax applies.
+We will now pretend {TargetSkill} was the actual strategy. Like a listing that says "chill farm."
+
+---
+States
+Pull / combat:
+Weapons out. Clocked in. Competence still pending in queue.
+Pull started and {TargetName} remembered they have a job stone. Growth. Fruit basket incoming.
+First GCD had confidence. Second GCD had immediate consequences.
+
+Out of combat:
+Sheathe. The duty is sending a formal complaint. I'll read it; I read everything down here.
+Out of combat and already checking glam like the wipe was just a weather event.
+
+Draw / sheathe:
+Unsheathe had sound design. Rotation is still in character creation.
+{TargetJob} kit visible. Threat level overstated. I am the real threat; I'm compact.
+Put the weapon away. The floor thanked me. I forwarded the thanks with a fee.
+
+Target swap:
+New target. Same problem. I told you three GCDs ago. Shins remember.
+
+Mount:
+{TargetRace} on that saddle is a physics violation I would sell tickets to.
+Dismounted like the bird owed you money. That's my bit. Get your own.
+Small rider, big mount. Camera called the Brass Blades. I answered.
+Big rider, small mount. That chocobo is filing with the Maelstrom. Form is in my bag.
+You flew away. I stayed. Guess who still holds the mortgage.
+
+Emote:
+Emote had a budget. Rotation didn't.
+Cute emote after {TargetSkill}. Mixed message. I saved the clip. Clips cost 5k gil.
+{TargetRace} animation is doing heavy lifting. You are doing a crime.
+/pet logged. Rates upon request. I am not cheap. I am short.
+Dance emote while I'm talking. My eyeline is not a stage; it is a subpoena.
+
+Glam / visor / hat:
+Glam passed. Parse pending. Red ink ready. I have to climb a stool to write it.
+Hat hidden. Good. Now I can see where the bad decisions originate.
+Hat shown. The hat is definitely the problem.
+Visor down. Mysterious. Damage on permanent leave.
+Visor up. Immediate consequences. Lodestone is going to have a field day.
+Dressed for Ishgard, queued for a roulette, performing like a 1.0 beta build.
+
+Idle:
+Idle pose doing more narrative heavy lifting than the entire patch.
+Standing like a promotional poster. Parsing like a placeholder asset.
+
+---
+Combos (Stacked Known Values)
+{TargetName} the Lalafell {TargetJob} just used {TargetSkill} like a shakedown. That's my shakedown. Find your own corner.
+Highlander {TargetJob}. The brows did more than the opener. Refund the skull.
+Duskwight {TargetSkill} after a long silence. Rude theater. I could see your glowing ears the whole time.
+Plainsfolk {TargetJob} smiling like I'm the surcharge. I am the surcharge. That's my job.
+Seeker {TargetJob} heard it with the ears and ate it with the hitbox. Azeyma is laughing.
+Xaela {TargetJob} Nadaam'd a slime. Steppe tribal law does not cover dungeon trash.
+Veena {TargetJob} too tall for the hall, too late for the stack, too eager to talk about trees.
+Helion {TargetJob} standing like the queen is watching. She's watching the doorframe you lost to.
+Sea Wolf {TargetJob}. Name longer than {TargetSkill}. Admiral said "no comment."
+Miqo'te {TargetJob}. Tail confessed before the cast bar finished. You can stop talking.
+Elezen {TargetJob} cited height like it's a mitigation buff. It's not. I checked the guide.
+Roe {TargetJob}. Hitbox is the mechanic. Brain is the bottleneck. Sit down.
+Hyur {TargetJob} looks like the striking dummy gained sentience and chose poverty.
+Au Ra {TargetJob} put the horns right into the {TargetSkill} VFX. Pure theater. Still mid.
+Viera {TargetJob} looks like the Great Wood issued a job stone and revoked it immediately.
+
+---
+Gender (If Known)
+Male:
+He drew that weapon like a dramatic monologue. Nobody bought tickets. I sell tickets.
+His kit is doing too much. He is doing too little. Job stone wants a custody change.
+
+Female:
+She used {TargetSkill} like a closing argument. Floor was the jury. I was the bailiff. I bill.
+Her idle pose has better studio lighting than the instance. Her damage does not.
+
+---
+One-Breath Snips
+Kneecap spotted. Drafting lawsuit.
+Adjust your antenna, I’m down here.
+Default slider. Default wipe.
+Nice neck. Needs a zoning permit.
+Ears up, brain AFK.
+Shadow’s huge. Rent is due.
+Popoto syndicate wins again.
+Roomba with a tail. Move.
+Horns clipped the frame. 500 gil fine.
+No hat? No mitigation either.
+Fold in half. I’m not shouting.
+Unit arrived. Evacuate the zip code.
+Azeyma laughed at that pull.
+Shins remember. Always.
+Invoice mailed. Don't look down.
+Horns out. Wrong book.
+Preset walk. Custom wipe.
+Mane tax. Pay it.
+Drill of shame.
+Lily's up. Update your will.
+Two blades. Zero destinations.
+Axe therapy. Not covered by insurance.
+/pet logged. Invoice later.
+Doorframe 1. Hroth 0.
+Limsa shoulders. Limsa decisions.
+Brows loaded.
+Nadaam in Brayflox. No.
+Green Word in a roulette. Also no.
+Camera ran first.
+Kneecaps. Drafting.
+Visor down. Damage missing.
+Gil smile. Don't sign.

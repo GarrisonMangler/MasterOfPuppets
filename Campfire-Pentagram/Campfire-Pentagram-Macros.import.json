@@ -1,0 +1,484 @@
+[
+  {
+    "Name": "Campfire: Pentagram Place",
+    "Tags": [
+      "Campfire",
+      "Pentagram"
+    ],
+    "Color": {
+      "X": 1,
+      "Y": 0.6,
+      "Z": 0.2,
+      "W": 1
+    },
+    "IconId": 2681,
+    "Commands": [
+      {
+        "Cids": [
+          18014498545172021
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 2 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498563678948
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 3 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498563154967
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 4 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498563665055
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 5 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498563667141
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 6 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498563676673
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 7 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498563880622
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 8 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498563975016
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 9 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498567996160
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 10 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498564936865
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 11 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498570473149
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 12 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498570473433
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 13 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498567553281
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 14 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498572667643
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 15 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498576354403
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 16 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498567531790
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 17 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498564173337
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 18 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498571136757
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 19 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498571153678
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 20 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498571161831
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 21 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498571153779
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 22 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498571146002
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 23 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498571136822
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 24 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498571145699
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 25 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498573073575
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 26 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498576354931
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 27 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498578296334
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 28 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498578296489
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 29 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498578305144
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 30 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498578447585
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 31 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498578447641
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 32 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      },
+      {
+        "Cids": [
+          18014498578454220
+        ],
+        "GroupIds": [],
+        "Actions": "/mopif \"$anchor\" == \"\" || \"$anchor\" == \"self\" || \"$anchor\" == \"target\" || \"$anchor\" == \"ftarget\" || \"$anchor\" == \"focustarget\" || \"$anchor\" == \"default\" || \"$anchor\" == \"sender\" || \"$anchor\" == \"<t>\" || \"$anchor\" == \"[t]\" || \"$anchor\" == \"<f>\" || \"$anchor\" == \"[f]\" || \"$anchor\" == \"Garrison Mangler@Sargatanas\" || \"$anchor\" == \"Boo Mangler@Sargatanas\" || \"$anchor\" == \"Giovanni Mangler@Sargatanas\" || \"$anchor\" == \"Bertucci Mangler@Sargatanas\" || \"$anchor\" == \"Sarducci Mangler@Sargatanas\" || \"$anchor\" == \"Achenarius Mangler@Sargatanas\" || \"$anchor\" == \"Maltheusen Mangler@Sargatanas\" || \"$anchor\" == \"Walter Mangler@Sargatanas\" || \"$anchor\" == \"Wind-up Garrison@Sargatanas\" || \"$anchor\" == \"Annabelle Mangler@Sargatanas\" || \"$anchor\" == \"Brittany Mangler@Sargatanas\" || \"$anchor\" == \"Kimberly Mangler@Sargatanas\" || \"$anchor\" == \"Rebecca Mangler@Sargatanas\" || \"$anchor\" == \"Roberto Mangler@Sargatanas\" || \"$anchor\" == \"Thaddeus Mangler@Sargatanas\" || \"$anchor\" == \"Vivian Mangler@Sargatanas\" || \"$anchor\" == \"Artemis Potato@Sargatanas\" || \"$anchor\" == \"Hermes Potato@Sargatanas\" || \"$anchor\" == \"Athena Potato@Sargatanas\" || \"$anchor\" == \"Gaia Potato@Sargatanas\" || \"$anchor\" == \"Nyx Potato@Sargatanas\" || \"$anchor\" == \"Apollo Potato@Sargatanas\" || \"$anchor\" == \"Hephaestus Potato@Sargatanas\" || \"$anchor\" == \"Poseidon Potato@Sargatanas\" || \"$anchor\" == \"Kazuko Aura@Sargatanas\" || \"$anchor\" == \"Barnabus Mangler@Sargatanas\" || \"$anchor\" == \"Cassandra Mangler@Sargatanas\" || \"$anchor\" == \"Ellis Mangler@Sargatanas\" || \"$anchor\" == \"Amelia Mangler@Sargatanas\" || \"$anchor\" == \"Madeline Mangler@Sargatanas\" || \"$anchor\" == \"Sabrina Mangler@Sargatanas\" || \"$anchor\" == \"Martin Mangler@Sargatanas\"\n/echo Campfire placement requires the full name of a stationary anchor outside the 32 assigned characters.\n/mopelse\n/minion\n/mopwait 0.5\n/mopformationgoto \"Campfire: Pentagram Positions\" 33 anchor=\"$anchor\" fallback=\"$anchor\" precise\n/mopendif"
+      }
+    ],
+    "Variables": "# Required: a stationary character outside these 32 participants.\n$anchor = \"\""
+  },
+  {
+    "Name": "Campfire: Pentagram Light",
+    "Tags": [
+      "Campfire",
+      "Pentagram"
+    ],
+    "Color": {
+      "X": 1,
+      "Y": 0.6,
+      "Z": 0.2,
+      "W": 1
+    },
+    "IconId": 2681,
+    "Commands": [
+      {
+        "Cids": [
+          18014498545172021
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498563678948
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498563154967
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498563665055
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498563667141
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498563676673
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498563880622
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498563975016
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498567996160
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498564936865
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498570473149
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498570473433
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498567553281
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498572667643
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498576354403
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498567531790
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498564173337
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498571136757
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498571153678
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498571161831
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498571153779
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498571146002
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498571136822
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498571145699
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498573073575
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498576354931
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498578296334
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498578296489
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498578305144
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498578447585
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498578447641
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      },
+      {
+        "Cids": [
+          18014498578454220
+        ],
+        "GroupIds": [],
+        "Actions": "/minion \"Wanderer's Campfire\""
+      }
+    ],
+    "Variables": ""
+  }
+]

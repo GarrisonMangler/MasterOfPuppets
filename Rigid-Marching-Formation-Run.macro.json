@@ -1,0 +1,28 @@
+{
+  "$type": "MasterOfPuppets.Macro, MasterOfPuppets",
+  "Name": "Rigid Marching Formation - Run",
+  "Tags": [
+    "32 Ordered",
+    "Lua",
+    "Formation"
+  ],
+  "Color": {
+    "$type": "System.Numerics.Vector4, System.Private.CoreLib",
+    "X": 0.18,
+    "Y": 0.62,
+    "Z": 0.90,
+    "W": 1.0
+  },
+  "IconId": 19707,
+  "Commands": [
+    {
+      "$type": "MasterOfPuppets.Command, MasterOfPuppets",
+      "Cids": [],
+      "GroupIds": [
+        "32 Ordered"
+      ],
+      "Actions": "/mopif me == \"$mop_origin\"\n/mopif \"$anchor\" == \"\"\n/mop lua sync \"Rigid Marching Formation\" -var=$anchor=\"$mop_origin\";$group=\"32 Ordered\";$visible_only=true;$rows=$rows;$columns=$columns;$horizontal=$horizontal;$vertical=$vertical;$precision=$precision;$neighbor_correction=$neighbor_correction;$maximum_neighbor_correction=$maximum_neighbor_correction;$preserve_emote=$preserve_emote\n/mopelse\n/mop lua sync \"Rigid Marching Formation\" -var=$anchor=\"$anchor\";$group=\"32 Ordered\";$visible_only=true;$rows=$rows;$columns=$columns;$horizontal=$horizontal;$vertical=$vertical;$precision=$precision;$neighbor_correction=$neighbor_correction;$maximum_neighbor_correction=$maximum_neighbor_correction;$preserve_emote=$preserve_emote\n/mopendif\n/mopendif"
+    }
+  ],
+  "Variables": "$anchor = \"$mop_origin_target\"\n$rows = 4\n$columns = 8\n$horizontal = 1.0\n$vertical = 1.5\n$precision = 0.12\n$neighbor_correction = 0.25\n$maximum_neighbor_correction = 0.35\n$preserve_emote = false"
+}
