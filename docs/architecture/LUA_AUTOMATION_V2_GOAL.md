@@ -26,7 +26,6 @@ It does **not** mean exposing arbitrary file access, process execution, networki
 
 ## Repository rules and preservation
 
-- Read `AGENTS.md` completely before making changes and follow it.
 - Inspect `git status` before editing. The working tree contains extensive uncommitted and untracked Lua-development work. Preserve it. Do not reset, clean, revert, or overwrite unrelated changes.
 - Treat `%APPDATA%\XIVLauncher\pluginConfigs\MasterOfPuppets.json` as read-only unless the user explicitly authorizes changing it. It is the authoritative client-data source for understanding actual scripts, macros, formations, groups, and characters.
 - Do not build or copy directly into the live Dalamud-watched release directory. Do not hot-deploy unless the user explicitly asks. Build and test in staging.
@@ -110,7 +109,7 @@ The locally installed development assemblies currently report:
 
 Confirm these values from the installed assemblies rather than hardcoding them. At build or development time, reflect over the referenced assemblies and generate a versioned coverage snapshot. Do not perform unrestricted CLR reflection from user Lua at runtime.
 
-Create `docs/lua-dalamud-coverage.md` and a machine-readable equivalent. The ledger must contain one entry for every public service and relevant public member, including:
+Maintain provider coverage through focused runtime tests. The provider surface must account for every public service and relevant public member, including:
 
 - assembly and version
 - namespace, service/type, and member signature
@@ -273,7 +272,7 @@ Replace the single opaque `_runCts` model with explicit run instances and status
 
 - Add a versioned script/bundle schema with stable script ID, display name, source, modules, declared capabilities, typed parameter definitions/defaults/ranges, participant formation, tags, revision, and content/dependency hashes.
 - Migrate current `LuaScriptDefinition` entries without data loss. Existing scripts and all 18 current flat APIs must continue to run.
-- Packaged defaults must never overwrite edited user copies. Make upgrades explicit and diffable.
+- User-imported scripts must never be overwritten implicitly. Make upgrades explicit and diffable.
 - Validate compile/syntax before save and before launch. Show line-aware errors in the editor.
 - Add an API reference/capability panel, parameter controls generated from typed definitions, run/stop/pause controls, status by participant, and a bounded per-run log/error console.
 - If practical in the existing ImGui stack, add line numbers and basic syntax coloring. Correctness and diagnostics take priority over a sophisticated editor widget.
@@ -299,7 +298,7 @@ Required automated coverage:
 - readiness barriers, missing participants, timeouts, clock skew, heartbeat loss, phase correction, and late join
 - pure movement simulations for on-path, displaced, early, late, slow/walk, fast/run, moving anchor, lost anchor, and reacquisition cases
 - invariant/property tests: finite outputs, bounded acceleration/turning, no unintended reversal, no center crossing, stable slot order, and converging phase/cross-track error
-- packaged-script smoke tests, including Dynamic Conga, Sixteen Voices, Bee Swarm, and the stable single-ring choreography
+- generic Lua runtime and coordination smoke tests using test-owned inline sources
 - import/export and configuration migration round trips
 
 Run restore, build, and the entire test suite. Report exact commands and results. Do not hide pre-existing failures; distinguish them from regressions. Do not weaken assertions or delete tests to get green results.

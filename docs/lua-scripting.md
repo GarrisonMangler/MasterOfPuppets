@@ -28,20 +28,13 @@ The implementation adds:
 * A bounded per-run typed event stream for lifecycle and chat observations.
 * Safe standard Lua base, math, string, table, bitwise, and coroutine features.
 * Sandboxed, bundle-local reusable modules loaded with `require`.
-* Packaged examples covering freeform motion, dialogue, dynamic following,
-  stable rings, and typed-event orchestration, including **Event-Driven Curtain
-  Call**.
+* User-imported scripts covering freeform motion, dialogue, dynamic following,
+  movement, and typed-event orchestration.
 * Independent movement policies so ordinary formations retain exact arrival behavior while continuous Lua trajectories can use smoother pursuit behavior.
 
 ## Script Storage and Deployment
 
-There are three distinct locations to understand:
-
-1. **Project source**: Packaged default scripts are maintained in `MasterOfPuppets/Lua/Scripts/*.lua`.
-2. **Built plugin**: The build copies those files to a `Scripts` directory beside `MasterOfPuppets.dll`. They are not embedded inside the DLL.
-3. **User configuration**: Scripts shown and edited in the in-game Script Editor are stored as `LuaScripts` entries in `MasterOfPuppets.json`.
-
-At startup, MoP imports a packaged default only when a script with that default name is missing. It does not overwrite an existing edited script. Consequently, changing a project `.lua` file and deploying a new build does not replace an existing configuration copy with the same name. Delete or rename the saved copy before reload if the packaged default must be imported again, or update it in the Script Editor.
+Scripts shown and edited in the in-game Script Editor are stored as `LuaScripts` entries in `MasterOfPuppets.json`. New installations do not receive bundled scripts automatically. Scripts can be created in the editor, imported through the normal Lua import workflow, or supplied by a local development deployment.
 
 The project build still needs to be deployed to every PC that runs the plugin. A shared OneDrive project makes the same source available, but it does not by itself replace a running DLL or an existing saved script.
 
@@ -50,8 +43,7 @@ The project build still needs to be deployed to every PC that runs the plugin. A
 ### Current PC
 
 ```text
-/mop lua run "Bee Swarm"
-/mop lua run "Dynamic Conga Line"
+/mop lua run "<imported script>"
 /mop lua status
 /mop lua stop
 ```
@@ -61,11 +53,11 @@ Here, **local** means all active MoP clients on the current PC, not only the gam
 ### Multiple PCs through Chat Sync
 
 ```text
-/cwl2 mopluarun "Dynamic Conga Line"
+/cwl2 mopluarun "<imported script>"
 /cwl2 mopluastop
 ```
 
-Use the chat prefix configured in **Settings > Chat Sync**; `/cwl2` is only an example. `/mop lua sync "Dynamic Conga Line"` is a local alias that sends the same cross-PC command through the configured prefix.
+Use the chat prefix configured in **Settings > Chat Sync**; `/cwl2` is only an example. `/mop lua sync "<imported script>"` is a local alias that sends the same cross-PC command through the configured prefix.
 
 The readable `mopluarun` command is expanded by the sender's MoP client into a synchronization envelope containing a future start time, shared seed, SHA-256 script hash, and encoded run target. Listening MoP clients suppress that internal envelope from their chat display. The short readable command remains visible.
 
@@ -125,7 +117,7 @@ The script therefore does not need to hardcode the target's name.
 * `/mop lua run`: if no target is selected, `mop.get_run_target()` returns `nil`.
 * `mopluarun` through Chat Sync: a selected target is used; if none is selected, the command sender becomes the effective run target.
 
-That sender fallback lets a cross-PC Dynamic Conga start behind its conductor without requiring the conductor to target themselves. Scripts such as Bee Swarm intentionally reject a missing local run target because they require an anchor.
+The sender fallback lets a cross-PC run start behind its conductor without requiring the conductor to target themselves. Individual scripts can require an anchor when their behavior needs one.
 
 ## Available Lua API
 
@@ -339,7 +331,7 @@ back to the game's jump interruption when that state rejects an in-place exit;
 it does not merely clear local animation memory. Every call returns the normal
 `ok`/`status`/`message` result.
 
-The packaged **Mirror Target Emotes** script combines those primitives for any
+An imported script can combine those primitives for any
 visible run target. It intentionally ignores the source emote's target and
 always uses `mop.actions.use_exact`, so detecting an emote never changes a
 recipient's selected game target to the source's target-of-target. Emote row IDs
@@ -499,56 +491,11 @@ With `rigid_formation = true`, all clients evolve the same rate-limited virtual 
 
 Automatic Lua movement always cancels persistent emotes before movement is accepted. There is no general follow option to preserve an emote while translating.
 
-## Dynamic Conga Line
+## Script Coordination
 
-The packaged **Dynamic Conga Line** script uses this fixed performer roster:
-
-1. Artemis Potato
-2. Hermes Potato
-3. Athena Potato
-4. Gaia Potato
-5. Nyx Potato
-6. Apollo Potato
-7. Hephaestus Potato
-8. Poseidon Potato
-9. Kazuko Aura
-10. Barnabus Mangler
-11. Cassandra Mangler
-12. Ellis Mangler
-13. Amelia Mangler
-14. Madeline Mangler
-15. Sabrina Mangler
-16. Martin Mangler
-
-Its correct behavior is:
-
-* The selected actor leads. With cross-PC Chat Sync and no selected target, the sender leads.
-* If the leader is one of the sixteen performers, the roster rotates around that leader to produce one chain rather than two branches from the fixed list.
-* Each performer follows the nearest visible predecessor at a rotated offset of `0.8` yalms behind them.
-* Missing performers are skipped without breaking the chain.
-* Late-visible performers whose script is already running are inserted automatically.
-* The exact slot is used, braking remains enabled, pursuit projection is disabled, and steering is immediate. This avoids overshoot and circular orbit behavior at short spacing.
-* A selected external actor can lead but does not become a performer. For example, Garrison Mangler can lead the sixteen-person chain, but is not one of its follower entries.
-
-Only clients that received the original run command have a running Lua script. A character that logs in after the command was sent must receive a new run command before it can participate.
-
-Recommended cross-PC launch:
-
-```text
-/cwl2 mopluarun "Dynamic Conga Line"
-```
-
-Recommended cross-PC stop:
-
-```text
-/cwl2 mopluastop
-```
-
-This Lua conga is separate from the macro named `Conga: Target-Based Auto Line`. Running `moprun` invokes the old macro and its saved formation/order logic; it does not invoke Dynamic Conga Line.
-
-## Sixteen Voices Synchronization
-
-**Sixteen Voices** demonstrates state-aware conversation logic. Each client runs the same dialogue table, but only the named character speaks a line. Every client then waits until the expected speaker and exact message are observed in `/say` before advancing. If the expected response is not observed within the timeout, the conversation stops instead of drifting onto different lines on different PCs.
+Imported scripts can use the coordination API to share variables, identify
+participants, and synchronize actions across clients. The plugin does not ship
+or install a private performer roster.
 
 ## Relevant Files
 
@@ -558,9 +505,8 @@ This Lua conga is separate from the macro named `Conga: Target-Based Auto Line`.
 * `MasterOfPuppets/Lua/LuaScriptManager.cs`: synchronized run lifecycle and cancellation.
 * `MasterOfPuppets/Lua/LuaActorFollowController.cs`: dynamic actor resolution and following.
 * `MasterOfPuppets/Lua/LuaTrajectoryController.cs`: anchor-relative continuous trajectories.
-* `MasterOfPuppets/Lua/LuaScriptCatalog.cs`: packaged default discovery and configuration import.
+* `MasterOfPuppets/Lua/LuaScriptCatalog.cs`: script import/export and local development loading.
 * `MasterOfPuppets/Ipc/IpcProvider.Lua.cs`: local IPC and cross-PC synchronization.
 * `MasterOfPuppets/Game/ChatWatcher.cs`: `mopluarun` and `mopluastop` handling.
 * `MasterOfPuppets/Ui/Windows/LuaScriptsWindow.cs`: Scripts list and convenience actions.
 * `MasterOfPuppets/Ui/Windows/LuaScriptEditorWindow.cs`: script editor.
-* `MasterOfPuppets/Lua/Scripts/dynamic_conga.lua`: packaged Dynamic Conga Line source.

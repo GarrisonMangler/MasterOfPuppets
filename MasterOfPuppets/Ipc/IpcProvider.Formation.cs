@@ -247,7 +247,10 @@ internal partial class IpcProvider {
     }
 
     private void HandleExecuteFormationMoveOnFrameworkThread(IpcMessage message) {
-        if (message.StringData == null || message.StringData.Length < 15) return;
+        // The eligibility bitmap was added after the upstream 14-field
+        // payload. Accept legacy messages and treat every roster member as
+        // eligible when that optional field is absent.
+        if (message.StringData == null || message.StringData.Length < 14) return;
         var name = message.StringData[0];
         if (!float.TryParse(message.StringData[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float lx)) return;
         if (!float.TryParse(message.StringData[2], NumberStyles.Float, CultureInfo.InvariantCulture, out float ly)) return;
@@ -270,12 +273,20 @@ internal partial class IpcProvider {
         var normalizeAnchorRotation = message.StringData.Length >= 14
             ? message.StringData[13] == "1"
             : message.StringData.Length < 11 || message.StringData[10] == "self";
-        var eligibleMemberBits = message.StringData[14];
+        var eligibleMemberBits = message.StringData.Length >= 15
+            ? message.StringData[14]
+            : null;
         var formation = Plugin.Config.Formations.FirstOrDefault(f =>
             string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase));
         if (formation == null) {
             DalamudApi.PluginLog.Warning($"[ExecuteFormationMove] Formation '{name}' not found.");
             return;
+        }
+        if (eligibleMemberBits == null) {
+            eligibleMemberBits = FormationChatSyncCodec.EncodeEligibleMembers(
+                formation,
+                Plugin.Config.CidsGroups,
+                formation.Points.SelectMany(point => point.GetEffectiveCids(Plugin.Config.CidsGroups)));
         }
         if (!FormationMemberVisibility.IsLocalMemberEligible(Plugin, formation, eligibleMemberBits)) {
             DalamudApi.PluginLog.Debug("[ExecuteFormationMove] local formation member was not visible to the command issuer; ignoring command");

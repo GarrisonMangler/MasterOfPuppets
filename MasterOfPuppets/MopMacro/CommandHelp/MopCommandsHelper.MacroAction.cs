@@ -258,6 +258,60 @@ public static partial class MopCommandsHelper {
             Supports decimals in lists: {random(0.5,1.0,1.5)} = 0.5, 1.0, or 1.5.
             """
         },
+        new MopAction {
+            Category = MopActionCategory.MacroAction,
+            SubCategory = MopActionSubCategory.Variables,
+            TextCommand = "{calc(expression)}",
+            SuggestionCommand = "{calc(}",
+            Example = """
+            /mopphasewait {calc(0.8 * 7)}
+            /mopphasewait {calc($interval * 7)}
+            """,
+            Notes = """
+            Evaluates a bounded arithmetic expression at execution time after variable and
+            random-token substitution. Supports + - * / % ^, parentheses, and unary signs;
+            results are rounded to 2 decimals. Invalid expressions are left untouched.
+            """
+        },
+        new MopAction {
+            Category = MopActionCategory.MacroAction,
+            SubCategory = MopActionSubCategory.Variables,
+            TextCommand = "$name=value - Declared Variables",
+            SuggestionCommand = "$name=",
+            Example = """
+            $interval=0.80
+            $offset=$assignmentIndex * $interval
+            $totalWait=$assignmentCount * $interval
+            /mopphasewait $totalWait
+            """,
+            Notes = """
+            Declare reusable values in the macro Variables field or at the top of a command.
+            Arithmetic definitions are evaluated automatically. Use $commandIndex and
+            $commandCount for macro structure, and $assignmentIndex and $assignmentCount
+            for a character's lane among the matched command's targets.
+            """
+        },
+        new MopAction {
+            Category = MopActionCategory.MacroAction,
+            SubCategory = MopActionSubCategory.Variables,
+            TextCommand = "$variable - Built-in Variables",
+            SuggestionCommand = "$",
+            Example = """
+            $me                 local character name
+            $target             current target name
+            $ftarget            current focus target name
+            $job                current job abbreviation
+            $level              current level
+            $world              current home world
+            $leader             party leader name
+            $globaldelay        configured global delay in seconds
+            """,
+            Notes = """
+            Runtime values are populated from game state. Structure values are authoritative:
+            $commandIndex/$commandCount describe the selected command, while
+            $assignmentIndex/$assignmentCount describe its targeted character roster.
+            """
+        },
 
         //  Variables
         new MopAction {

@@ -136,8 +136,9 @@ internal class ChatWatcher : IDisposable {
     }
 
     private void OnCheckMessageHandled(IChatMessage message) {
-        if (!Plugin.Config.UseChatSync
-            || message.IsHandled
+        // Suppression is independent of outbound/inbound sync. A frame may
+        // have been sent by another client while local chat sync is disabled.
+        if (message.IsHandled
             || !AllowedChatTypes.Contains(message.LogKind))
             return;
 

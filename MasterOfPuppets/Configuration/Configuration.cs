@@ -331,7 +331,6 @@ internal class Configuration : IPluginConfiguration {
             return;
 
         UpdateFrom(incoming);
-        LuaScriptCatalog.EnsureDefaults(this);
         OnConfigurationChanged?.Invoke();
     }
 

@@ -47,7 +47,6 @@ public sealed class LuaScriptsWindow : Window {
     }
 
     public override void OnOpen() {
-        LuaScriptCatalog.EnsureDefaults(_plugin.Config);
         base.OnOpen();
     }
 

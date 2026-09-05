@@ -54,28 +54,6 @@ public sealed class MacroExecutionPlan {
         }
     }
 
-    /// <summary>
-    /// V2 selects its literal path once per lap. Its live controls must wake the
-    /// runner so it can reselect without reintroducing per-waypoint expansion.
-    /// Other macros retain their existing live-variable behavior.
-    /// </summary>
-    internal bool EnableTornadoLiveControls(string macroName) {
-        if (!string.Equals(macroName, "Carbuncle: Tornado V2", StringComparison.OrdinalIgnoreCase))
-            return false;
-        var start = Array.IndexOf(ActionTemplates, "/moploopstart");
-        var end = Array.IndexOf(ActionTemplates, "/moploopend");
-        // Restrict rewinds to V2's single unbounded loop and known top-level
-        // selector. Do not alter arbitrary same-name or finite-loop macros.
-        if (start < 0 || end <= start
-            || Array.LastIndexOf(ActionTemplates, "/moploopstart") != start
-            || Array.LastIndexOf(ActionTemplates, "/moploopend") != end
-            || ActionTemplates[start + 1] != "/mopif \"[$mode]\" == \"[medium]\"")
-            return false;
-        lock (_variablesLock)
-            _loopControlChanged ??= NewLoopControlSignal();
-        return true;
-    }
-
     internal Task? LoopControlChanged => _loopControlChanged?.Task;
 
     private static TaskCompletionSource NewLoopControlSignal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -107,12 +85,9 @@ public sealed class MacroExecutionPlan {
             return _variables.TryGetValue(name, out value);
     }
 
-    // Re-derives variable values from the CURRENT raw definitions, so arithmetic
-    // expressions (e.g. $totalWait = $count * $interval) recompute after a live
-    // variable update instead of being frozen at plan creation.
     private Dictionary<string, string> ResolvedVariables() {
-        var vars = new Dictionary<string, string>(_variables);
-        Command.ResolveVariableExpressions(vars);
-        return vars;
+        var variables = new Dictionary<string, string>(_variables);
+        Command.ResolveVariableExpressions(variables);
+        return variables;
     }
 }

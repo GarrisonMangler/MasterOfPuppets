@@ -13,6 +13,7 @@
 - [Configuration & Live Variables](configuration-and-live-variables.md) - Configuration reload aliases, out-of-band `/mop setvar` updates, and Windows clipboard/importer features.
 - [Rigid Marching Formation](rigid-marching-formation.md) - Shared-grid marching behavior, live controls, physical limits, and performance characteristics.
 - [Macro Conditionals](macro-conditionals.md) - Control flow with `/mopif`, `/mopelseif`, `/mopelse`, and `/mopendif`.
+- [Macro Variables & Expressions](variables-and-expressions.md) - Built-in runtime values, arithmetic definitions, `{calc(...)}`, and synchronized assignment lanes.
 - [Phase-Locked Macro Timing](phase-locked-macro-timing.md) - Monotonic timeline management for synchronized movement loops.
 - [Movement Coordinate System](movement.md) - FFXIV world axes, relative directions, and facing angles.
 

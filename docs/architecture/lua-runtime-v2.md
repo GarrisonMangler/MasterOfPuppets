@@ -128,7 +128,7 @@ implementations should live in adapter-specific directories as they are added.
 
 ### Phase 0 — inventory and runtime foundation (implemented)
 
-Files: `tools/LuaCapabilityCoverage`, `docs/lua-dalamud-coverage.*`,
+Capability decisions are maintained with the runtime providers and tests,
 `Lua/Runtime/*`, `Lua/Providers/*`, `LuaScriptDefinition`, IPC envelope codec,
 and Lua tests.
 

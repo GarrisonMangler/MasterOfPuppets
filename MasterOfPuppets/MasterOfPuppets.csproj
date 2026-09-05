@@ -1,6 +1,6 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>1.15.0.437</Version>
+    <Version>1.15.0.446</Version>
   </PropertyGroup>
   <PropertyGroup>
     <Author>Zune</Author>
@@ -29,7 +29,7 @@ Use it to trigger custom actions like emotes, minions, mounts, glamour changes, 
     <!-- <UseWpf>true</UseWpf> -->
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Any CPU'">
-      <Version>1.15.0.437</Version>
+      <Version>1.15.0.446</Version>
     <DefineConstants>DEBUG</DefineConstants>
   </PropertyGroup>
   <!-- Linux build -->
@@ -66,21 +66,6 @@ Use it to trigger custom actions like emotes, minions, mounts, glamour changes, 
     <!-- <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" /> -->
   </ItemGroup>
   <ItemGroup>
-    <!-- Temporary Tornado V2 delivery: remove with TemporaryTornadoV2Installer. -->
-    <EmbeddedResource Include="MopMacro\Bundled\Carbuncle-Tornado-V2.macro.blob.txt"
-                      LogicalName="MasterOfPuppets.Temporary.CarbuncleTornadoV2" />
-    <!-- Temporary pentagram pair delivery: remove with TemporaryPentagramInstaller. -->
-    <EmbeddedResource Include="MopMacro\Bundled\Carbuncle-Circled-Pentagram.macro.blob.txt"
-                      LogicalName="MasterOfPuppets.Temporary.CircledPentagram" />
-    <EmbeddedResource Include="MopMacro\Bundled\Carbuncle-Pentagram-Colors.macro.blob.txt"
-                      LogicalName="MasterOfPuppets.Temporary.PentagramColors" />
-    <!-- Temporary campfire delivery: remove with TemporaryCampfireInstaller. -->
-    <EmbeddedResource Include="MopMacro\Bundled\Campfire-Pentagram-Place.macro.blob.txt"
-                      LogicalName="MasterOfPuppets.Temporary.CampfirePlace" />
-    <EmbeddedResource Include="MopMacro\Bundled\Campfire-Pentagram-Light.macro.blob.txt"
-                      LogicalName="MasterOfPuppets.Temporary.CampfireLight" />
-    <EmbeddedResource Include="MopMacro\Bundled\Campfire-Pentagram-Positions.formation.blob.txt"
-                      LogicalName="MasterOfPuppets.Temporary.CampfirePositions" />
     <EmbeddedResource Update="Resources\Language.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Language.Designer.cs</LastGenOutput>
@@ -95,9 +80,5 @@ Use it to trigger custom actions like emotes, minions, mounts, glamour changes, 
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <TargetPath>Scripts\%(Filename)%(Extension)</TargetPath>
       </Content>
-      <!-- Embed defaults as well so one watched DLL hot reload atomically carries
-           plugin code and the matching script revisions to every synced PC. -->
-      <EmbeddedResource Include="Lua\Scripts\*.lua"
-                        LogicalName="MasterOfPuppets.Lua.Scripts.%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

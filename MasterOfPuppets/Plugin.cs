@@ -52,46 +52,8 @@ public class Plugin : IDalamudPlugin {
         pluginInterface.Create<DalamudApi>();
         Config = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Config.Initialize(DalamudApi.PluginInterface);
-        if (LuaScriptCatalog.EnsureDefaults(Config)) {
-            try {
-                Config.Save();
-            } catch (Exception ex) {
-                // Dalamud's reliable-storage database can remain locked for a
-                // moment during a dev-plugin hot reload. Defaults already exist
-                // in memory, so a transient persistence failure must not abort
-                // the entire plugin load.
-                DalamudApi.PluginLog.Warning(ex, "Could not persist newly packaged Lua scripts during startup");
-            }
-        }
-        // Temporary single-macro delivery for shared dev-plugin reloads.
-        try {
-            if (TemporaryTornadoV2Installer.EnsureInstalled(Config.Macros)) {
-                DalamudApi.PluginLog.Information("[Tornado V2] Installed or upgraded the bundled square-clarity macro; automatic execution is disabled.");
-                Config.Save();
-            }
-        } catch (Exception ex) {
-            // A missing resource or transient storage lock must not prevent the
-            // plugin from loading. A successfully added macro remains in memory.
-            DalamudApi.PluginLog.Warning(ex, "[Tornado V2] Could not install or persist the temporary bundled macro during startup");
-        }
-        // Temporary add-only delivery for the requested pentagram macro pair.
-        try {
-            if (TemporaryPentagramInstaller.EnsureInstalled(Config.Macros)) {
-                Config.Save();
-                DalamudApi.PluginLog.Information("[Pentagram] Added missing bundled macros; existing copies were preserved and automatic execution is disabled.");
-            }
-        } catch (Exception ex) {
-            DalamudApi.PluginLog.Warning(ex, "[Pentagram] Could not install or persist the temporary bundled macros during startup");
-        }
-        // Temporary campfire formation and macro delivery through the shared DLL.
-        try {
-            if (TemporaryCampfireInstaller.EnsureInstalled(Config.Macros, Config.Formations)) {
-                Config.Save();
-                DalamudApi.PluginLog.Information("[Campfire] Installed missing pentagram items or repaired known v337 placement actions; custom copies were preserved and nothing was executed.");
-            }
-        } catch (Exception ex) {
-            DalamudApi.PluginLog.Warning(ex, "[Campfire] Could not install or persist the temporary bundled formation/macros during startup");
-        }
+        // Load packaged defaults into memory without mutating the user's
+        // configuration until they explicitly save through the UI.
         GameCameraManager.Initialize();
 
         Ui = new PluginUi(this);

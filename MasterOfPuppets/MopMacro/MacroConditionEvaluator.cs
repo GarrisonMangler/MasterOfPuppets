@@ -7,6 +7,7 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using MasterOfPuppets.Extensions;
 using MasterOfPuppets.Extensions.Dalamud;
+using MasterOfPuppets.Formations;
 using MasterOfPuppets.LuaScripting.Runs;
 
 namespace MasterOfPuppets;
@@ -183,10 +184,12 @@ public static class MacroConditionEvaluator {
         var leftVal = ResolveValue(left);
         var rightVal = ResolveValue(right);
 
-        bool isEqual = string.Equals(leftVal, rightVal, StringComparison.OrdinalIgnoreCase) ||
-                       (leftVal.Length > 0 && rightVal.Length > 0 &&
-                        (leftVal.Contains(rightVal, StringComparison.OrdinalIgnoreCase) ||
-                         rightVal.Contains(leftVal, StringComparison.OrdinalIgnoreCase)));
+        // Character selectors may omit the world suffix, but general values
+        // must use exact equality so numeric and short-token comparisons are safe.
+        bool isEqual = IsCharacterSelector(left) || IsCharacterSelector(right)
+            || IsCharacterNameValue(leftVal) || IsCharacterNameValue(rightVal)
+            ? FormationCharacterName.Matches(leftVal, rightVal)
+            : string.Equals(leftVal, rightVal, StringComparison.OrdinalIgnoreCase);
 
         // If either side was explicitly quoted empty string (""), compare exact emptiness
         if ((left.Equals("\"\"", StringComparison.Ordinal) || left.Equals("''", StringComparison.Ordinal) ||
@@ -200,6 +203,17 @@ public static class MacroConditionEvaluator {
             _ => false,
         };
     }
+
+    private static bool IsCharacterSelector(string token) =>
+        token.Trim().ToLowerInvariant() is
+            "target" or "target.name" or "<t>" or
+            "focustarget" or "focustarget.name" or "<f>" or
+            "me" or "self" or "<me>";
+
+    private static bool IsCharacterNameValue(string value) =>
+        !double.TryParse(value, out _)
+        && (value.Contains('@', StringComparison.Ordinal)
+            || value.Any(char.IsWhiteSpace));
 
     private static string ResolveValue(string token) {
         var trimmed = token.Trim();

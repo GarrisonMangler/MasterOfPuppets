@@ -237,7 +237,6 @@ public partial class MacroHandler : IDisposable {
         int? loopsLeft = null;
         var phaseClock = new MacroPhaseClock();
         var condStack = new Stack<ConditionalFrame>();
-        plan.EnableTornadoLiveControls(macroId);
         Task? loopControlChanged = null;
 
         do {
