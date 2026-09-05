@@ -13,6 +13,7 @@ namespace MasterOfPuppets;
 public sealed class MacroExecutionPlan {
     private readonly object _variablesLock = new();
     private readonly Dictionary<string, string> _variables;
+    private Dictionary<string, string>? _resolvedVariables;
     private volatile TaskCompletionSource? _loopControlChanged;
 
     public string[] ActionTemplates { get; }
@@ -44,6 +45,8 @@ public sealed class MacroExecutionPlan {
                     restartLoop = true;
                 _variables[name] = value;
             }
+            if (variables.Count > 0)
+                _resolvedVariables = null;
             if (restartLoop) {
                 var previousSignal = _loopControlChanged!;
                 _loopControlChanged = NewLoopControlSignal();
@@ -86,6 +89,10 @@ public sealed class MacroExecutionPlan {
     }
 
     private Dictionary<string, string> ResolvedVariables() {
+        return _resolvedVariables ??= ResolveVariables();
+    }
+
+    private Dictionary<string, string> ResolveVariables() {
         var variables = new Dictionary<string, string>(_variables);
         Command.ResolveVariableExpressions(variables);
         return variables;

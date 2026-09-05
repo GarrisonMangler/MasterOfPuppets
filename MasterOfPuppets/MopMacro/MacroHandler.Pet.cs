@@ -61,7 +61,6 @@ public partial class MacroHandler {
             var targetActor = resolved.Actor ?? (resolved.GameObjectId.HasValue ? DalamudApi.ObjectTable.FirstOrDefault(a => a != null && a.GameObjectId == resolved.GameObjectId) : null);
 
             GameActionManager.PlacePet(worldPos, targetActor, isSelf);
-            DalamudApi.PluginLog.Debug($"[moppetplace] offset=({x}, {y}, {z}) anchor={anchorParse.Anchor} world=({worldPos.X:F2}, {worldPos.Y:F2}, {worldPos.Z:F2}) actor='{targetActor?.Name}' isSelf={isSelf}");
         });
     }
 
