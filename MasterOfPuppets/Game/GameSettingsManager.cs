@@ -146,9 +146,9 @@ public static class GameSettingsManager {
         // 3 = Apply from SystemConfig
         envManager->SetWindowMode(3);
 
-        // screen resolution changes
-        var device = Device.Instance();
-        device->RequestResolutionChange = 1;
+        // screen resolution changes / conficts with winapi profile change
+        // var device = Device.Instance();
+        // device->RequestResolutionChange = 1;
     }
 
     public static unsafe void SetGameScreenMode(short width, short height, uint screenMode, short refreshRate = 0) {
