@@ -721,6 +721,8 @@ public static partial class MopCommandsHelper {
             Notes = """
             * This is a plugin command (works only on local clients)
             Changes the game settings according to those saved in the profile.
+
+            When using this command together with "/mop layout", keep in mind that the order in which they're used can affect the screen resolution
             """
         },
 
