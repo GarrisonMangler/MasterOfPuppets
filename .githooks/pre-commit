@@ -1,0 +1,2 @@
+#!/bin/sh
+pwsh -NoProfile -File tools/Audit-PublicTree.ps1 -Index

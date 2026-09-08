@@ -6,7 +6,7 @@ You are the senior engineer responsible for turning the existing Master of Puppe
 
 Repository checkouts used by the two project collaborators:
 
-`C:\Users\Utilisateur\OneDrive\Music\MasterofPuppets`
+the repository root
 
 `<workspace>\MasterOfPuppets`
 
