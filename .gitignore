@@ -10,11 +10,26 @@
 *.userosscache
 *.sln.docstates
 *.ps1
+AGENTS.md
 __ignore*/
+
+# Local synchronization metadata and exported development payloads.
+.stfolder/
+.stignore
+/*.bar.json
+/*.bar.blob.txt
+/*.sharecode.txt
+/* - Copy.json
+/tools/update-vortex-qolbar.js
+
+# This repository tool is intentionally public even though ad-hoc PowerShell
+# scripts remain local by default.
+!tools/Publish-HotReload.ps1
 
 # Personal Lua scripts used by the local multi-client hot-reload workflow.
 # The public plugin contains the runtime and import/editor support, not these scripts.
 MasterOfPuppets/Lua/Scripts/*.lua
+MasterOfPuppets/Lua/LocalScripts/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
