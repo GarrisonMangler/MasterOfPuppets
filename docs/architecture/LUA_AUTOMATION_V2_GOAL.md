@@ -8,7 +8,7 @@ Repository checkouts used by the two project collaborators:
 
 `C:\Users\Utilisateur\OneDrive\Music\MasterofPuppets`
 
-`C:\Users\john\OneDrive\Music\MasterofPuppets`
+`<workspace>\MasterOfPuppets`
 
 At the beginning of the task, detect which checkout exists on the current machine and use that path as the repository root. Do not assume that both paths exist, do not create a missing checkout path, and do not copy or synchronize files between the two locations automatically. All repository-relative instructions in this prompt refer to the detected checkout. Preserve the active collaborator's uncommitted work exactly as described below.
 

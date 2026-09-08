@@ -45,11 +45,28 @@ public sealed class LegacyLuaCapabilityProvider : ILuaCapabilityProvider {
         mop["time"] = new LuaFunction((call, _) =>
             new ValueTask<int>(call.Return(registration.ChoreographySeconds)));
 
+        mop["clock_seconds"] = new LuaFunction((call, _) =>
+            new ValueTask<int>(call.Return(LuaClock.SecondsOfDay(
+                call.GetArgument<string>(0), context.UtcNow?.Invoke() ?? DateTimeOffset.UtcNow))));
+
         mop["get_slot"] = new LuaFunction((call, _) =>
             new ValueTask<int>(call.Return((double)context.Slot)));
 
         mop["get_count"] = new LuaFunction((call, _) =>
             new ValueTask<int>(call.Return((double)context.CharacterCount)));
+
+        mop["get_anchor_slot"] = new LuaFunction((call, _) =>
+            new ValueTask<int>(call.Return((double)context.AnchorSlot)));
+
+        mop["get_anchor_party_slots"] = new LuaFunction((call, _) => {
+            var table = new LuaTable();
+            var slots = context.AnchorPartySlots;
+            if (slots != null) {
+                for (var i = 0; i < slots.Count; i++)
+                    table[i + 1] = (double)slots[i];
+            }
+            return new ValueTask<int>(call.Return(table));
+        });
 
         mop["get_seed"] = new LuaFunction((call, _) =>
             new ValueTask<int>(call.Return((double)context.Seed)));
@@ -202,7 +219,28 @@ public sealed class LegacyLuaCapabilityProvider : ILuaCapabilityProvider {
                     out var sample))
                 throw new ArgumentException("trajectory values must be finite numbers");
 
+            if (call.ArgumentCount > 3)
+                sample = sample with { TrackCameraAnchor = call.GetArgument<bool>(3) };
             context.PublishTrajectory(sample);
+            return new ValueTask<int>(call.Return());
+        });
+
+        mop["pet_trajectory_update"] = new LuaFunction((call, _) => {
+            if (context.PublishPetTrajectory == null)
+                throw new InvalidOperationException("pet trajectory control is unavailable in this Lua context");
+            var anchor = call.ArgumentCount > 2 ? call.GetArgument<string>(2) : "target";
+            var interval = call.ArgumentCount > 3 ? call.GetArgument<double>(3) : 0.20;
+            var deadband = call.ArgumentCount > 4 ? call.GetArgument<double>(4) : 0.08;
+            if (!LuaPetTrajectorySample.TryCreate(
+                    call.GetArgument<double>(0),
+                    call.GetArgument<double>(1),
+                    anchor,
+                    interval,
+                    deadband,
+                    registration.ChoreographySeconds,
+                    out var sample))
+                throw new ArgumentException("pet trajectory values must be finite numbers");
+            context.PublishPetTrajectory(sample);
             return new ValueTask<int>(call.Return());
         });
     }

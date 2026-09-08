@@ -30,7 +30,7 @@ internal partial class IpcProvider {
 
     [IpcHandle(IpcMessageType.InviteToParty)]
     private void HandleInviteToParty(IpcMessage message) {
-        if (message.StringData?.Length >= 4 && ulong.TryParse(message.StringData[3], out var targetCid)) {
+        if (TryGetCharacterDataTarget(message.StringData, out var targetCid)) {
             if (targetCid != DalamudApi.PlayerState.ContentId) return;
         }
 

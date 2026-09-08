@@ -65,9 +65,12 @@ Furthermore, sending a command across ChatSync (`/cwl2 mopbr ...`) normally appe
 ```text
 /cwl2 mopbr /mop setvar -var=$name=value[;$other=value]
 /cwl2 mopluavars -var=$name=value[;$other=value]
+/cwl2 mopluavars "Script Name" -var=$name=value[;$other=value]
 ```
 
 `mopluavars` is the direct cross-PC Lua control frame. When the chat sender uses the older nested `mopbr /mop setvar` form, MoP automatically emits the dedicated frame as well. The direct form is preferred when diagnosing chat-command routing.
+When a script name or run ID is supplied, only matching Lua runs receive the
+variables. Omitting it retains the original global behavior.
 
 ### 2.3 Out-of-Band ChatSync Interception
 * `ChatWatcher.TryHandleImmediateMacroVariableUpdate` inspects incoming chat messages for `/mop setvar` before they enter the action queue.

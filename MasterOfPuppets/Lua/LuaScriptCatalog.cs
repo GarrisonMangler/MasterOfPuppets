@@ -79,7 +79,7 @@ internal static class LuaScriptCatalog {
     private const string PreviousSwirlingVortexHash = "acbf6c84d72815215a78a8863777883b17ac491151ee00f7d90535a9b73586df";
     private const string CurrentSwirlingVortexHash = "3b7919ae9719319566f8661caa5504e7ae8315c7c5cccd3e9a0a85a10c6b1a21";
     private const string DefaultSwirlingVortexFormation = "Swarm - Honeycomb Hive (Wide)";
-    private const string DefaultSwirlingVortexVariables = "$inner = 1.50\n$outer = 2.80\n$speed = 1.00\n$spacing = 0.80\n$stage = 0.0\n$ramp = 1.0";
+    private const string DefaultSwirlingVortexVariables = "$inner = 1.50\n$outer = 2.80\n$speed = 1.00\n$stage = 0.0\n$ramp = 1.0";
     private const string DefaultTripleRingVortexVariables = "$radius = 1.60\n$spread = 0.75\n$pace = 2.70\n$stage = 7.0\n$ramp = 2.5";
 
     public static bool EnsureDefaults(Configuration configuration) {
@@ -96,7 +96,7 @@ internal static class LuaScriptCatalog {
             configuration,
             DefaultSixteenVoicesName,
             DefaultSixteenVoicesFileName,
-            "A synchronized, pre-written conversation performed by the Artemis and Kazuko bands.");
+            "A synchronized, pre-written conversation performed by configured bands.");
         changed |= EnsureDefault(
             configuration,
             DefaultDynamicCongaName,
@@ -251,13 +251,15 @@ internal static class LuaScriptCatalog {
         return true;
     }
 
-    private static bool UpgradeUnmodifiedSwirlingVortex(Configuration configuration) {
+    internal static bool UpgradeUnmodifiedSwirlingVortex(Configuration configuration) {
         var script = configuration.LuaScripts.FirstOrDefault(candidate =>
             candidate.Name.Equals(DefaultSwirlingVortexName, StringComparison.OrdinalIgnoreCase));
         if (script == null)
             return false;
 
         var packaged = LoadPackagedScript(DefaultSwirlingVortexFileName);
+        if (string.IsNullOrWhiteSpace(packaged))
+            return false;
         if (script.Source.Equals(packaged, StringComparison.Ordinal))
             return false;
 
@@ -502,7 +504,8 @@ internal static class LuaScriptCatalog {
 
         var assembly = typeof(LuaScriptCatalog).Assembly;
         var resourceName = $"MasterOfPuppets.Lua.Scripts.{fileName}";
-        using (var stream = assembly.GetManifestResourceStream(resourceName)) {
+        using (var stream = assembly.GetManifestResourceStream(resourceName)
+            ?? assembly.GetManifestResourceStream($"MasterOfPuppets.LocalScripts.{fileName}")) {
             if (stream != null) {
                 using var reader = new StreamReader(stream, Encoding.UTF8, true);
                 return reader.ReadToEnd();
@@ -520,6 +523,6 @@ internal static class LuaScriptCatalog {
         if (!scriptPath.StartsWith(scriptsDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Packaged Lua script path escaped its directory.");
 
-        return File.ReadAllText(scriptPath);
+        return File.Exists(scriptPath) ? File.ReadAllText(scriptPath) : string.Empty;
     }
 }

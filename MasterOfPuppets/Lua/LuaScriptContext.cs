@@ -17,6 +17,7 @@ public sealed record LuaScriptContext(
     int CharacterCount,
     int Seed,
     Action<LuaTrajectorySample> PublishTrajectory,
+    Action<LuaPetTrajectorySample>? PublishPetTrajectory = null,
     Action<string>? Log = null,
     Action<string>? SendChat = null,
     string CharacterName = "",
@@ -52,4 +53,7 @@ public sealed record LuaScriptContext(
     Func<string, CancellationToken, Task<bool>>? UnwatchActor = null,
     Func<string, CancellationToken, Task<bool>>? RequestGlobalStop = null,
     Func<uint, bool, ulong, CancellationToken, Task<bool>>? RequestEmoteResync = null,
-    Func<LuaActorEventSources>? GetActorEventSources = null);
+    Func<LuaActorEventSources>? GetActorEventSources = null,
+    Func<DateTimeOffset>? UtcNow = null,
+    int AnchorSlot = -1,
+    IReadOnlyList<int>? AnchorPartySlots = null);

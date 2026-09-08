@@ -336,6 +336,18 @@ public class PluginCommandManager : IDisposable {
                         }
                     }
                     break;
+                case "equipitem": {
+                        if (parsedArgs.Count < 2) {
+                            DalamudApi.ChatGui.PrintError("Invalid arguments. Usage: /mop equipitem \"item name\"");
+                            return;
+                        }
+                        _ = DalamudApi.Framework.RunOnFrameworkThread(() => {
+                            var result = ArmouryItemManager.EquipByName(parsedArgs[1]);
+                            if (!result.Success)
+                                DalamudApi.ChatGui.PrintError(result.Message);
+                        });
+                    }
+                    break;
                 case "moveinput": {
                         if (parsedArgs.Count < 2) {
                             DalamudApi.ChatGui.PrintError("Invalid arguments. Usage: /mop moveinput x y z");

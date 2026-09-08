@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 using MasterOfPuppets.Formations;
 
@@ -38,6 +39,7 @@ internal readonly record struct MirrorRunTargetBinding(
     bool WasExplicitlySelected);
 
 internal static class MirrorRunTargetValidator {
+    internal const string ProtocolCapability = "mop.mirror-protocol";
     private const ulong InvalidObjectId = 0xE0000000;
     internal const string LaunchNameKey = "mop_run_target_launch_name";
     internal const string LaunchGameObjectIdKey = "mop_run_target_launch_game_object_id";
@@ -46,18 +48,19 @@ internal static class MirrorRunTargetValidator {
     internal const string LaunchSourceKey = "mop_run_target_launch_source";
     internal const string LaunchWasSelectedKey = "mop_run_target_launch_was_selected";
 
-    internal static bool AppliesTo(string? scriptName) =>
+    internal static bool AppliesTo(
+        string? scriptName,
+        IReadOnlyCollection<string>? declaredCapabilities = null) =>
         string.Equals(
             scriptName,
             LuaScriptCatalog.MirrorScriptV2Name,
             StringComparison.OrdinalIgnoreCase)
-        || string.Equals(
-            scriptName,
-            LuaScriptCatalog.DefaultMirrorCombatTargetName,
-            StringComparison.OrdinalIgnoreCase);
+        || declaredCapabilities?.Contains(ProtocolCapability, StringComparer.OrdinalIgnoreCase) == true;
 
-    internal static bool RequiresPlayerRunTarget(string? scriptName) =>
-        AppliesTo(scriptName)
+    internal static bool RequiresPlayerRunTarget(
+        string? scriptName,
+        IReadOnlyCollection<string>? declaredCapabilities = null) =>
+        AppliesTo(scriptName, declaredCapabilities)
         || string.Equals(
             scriptName,
             LuaScriptCatalog.DefaultMirrorTargetJobName,

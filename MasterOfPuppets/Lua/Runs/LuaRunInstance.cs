@@ -124,7 +124,9 @@ public sealed class LuaRunInstance : IDisposable {
         string reason;
         lock (_lock) {
             state = _requestedTerminalState ?? (_timeoutCts.IsCancellationRequested ? LuaRunState.TimedOut : LuaRunState.Cancelled);
-            reason = _stopReason;
+            reason = state == LuaRunState.TimedOut && string.IsNullOrEmpty(_stopReason)
+                ? "maximum run time exceeded"
+                : _stopReason;
         }
         TransitionTerminal(state, reason, null);
     }

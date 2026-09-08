@@ -45,12 +45,15 @@ internal partial class IpcProvider {
 
     public void StartLuaScript(string scriptName, Dictionary<string, string>? inlineVariables = null) {
         _ = DalamudApi.Framework.RunOnFrameworkThread(() => {
+            var configuredScript = LuaScriptCatalog.Find(Plugin.Config, scriptName);
             MirrorRunTargetIdentity? mirrorIdentity = null;
             ulong runTargetObjectId;
             uint runTargetEntityId;
             string runTargetName;
             bool runTargetExplicit;
-            if (MirrorRunTargetValidator.RequiresPlayerRunTarget(scriptName)) {
+            if (MirrorRunTargetValidator.RequiresPlayerRunTarget(
+                    scriptName,
+                    configuredScript?.DeclaredCapabilities)) {
                 var decision = CaptureMirrorRunTarget(scriptName);
                 if (!decision.Success) {
                     RejectMirrorRunTarget(decision.Error);
@@ -124,7 +127,7 @@ internal partial class IpcProvider {
 
             var freshPeers = GetFreshPeerCharacterData();
             IReadOnlyList<ulong> orderedParticipants;
-            if (MirrorRunTargetValidator.AppliesTo(script.Name)) {
+            if (MirrorRunTargetValidator.AppliesTo(script.Name, script.DeclaredCapabilities)) {
                 orderedParticipants = ResolveActiveMirrorLaunchRoster(
                     freshPeers.Select(peer => peer.ContentId),
                     DalamudApi.PlayerState.ContentId);
@@ -160,14 +163,22 @@ internal partial class IpcProvider {
             }
             orderedParticipants = CompactVisibleLaunchRoster(
                 orderedParticipants,
-                VisibleOnlyRequested(variables));
+                VisibleOnlyRequested(variables)
+                    || ActiveFormationRosterRequested(variables),
+                excludePerforming: ExcludePerformingRequested(variables));
 
             if (orderedParticipants.Count == 0) {
+                if (ExcludePerformingRequested(variables)) {
+                    DalamudApi.ChatGui.PrintError("[MoP] No non-performing Lua clients are available.");
+                    return;
+                }
                 var localCid = DalamudApi.PlayerState.ContentId;
                 if (localCid != 0)
                     orderedParticipants = [localCid];
             }
 
+            WriteAnchorRosterSlot(variables, orderedParticipants, runTargetName);
+            WriteAnchorPartySlots(variables, orderedParticipants, runTargetName);
             var localVariables = AddLocalRuntimeVariables(variables);
             var seed = unchecked((int)DateTime.UtcNow.Ticks);
             var startUtcTicks = DateTime.UtcNow.Ticks;
@@ -227,7 +238,7 @@ internal partial class IpcProvider {
         }
 
         MirrorRunTargetIdentity? mirrorIdentity = null;
-        if (MirrorRunTargetValidator.RequiresPlayerRunTarget(script.Name)) {
+        if (MirrorRunTargetValidator.RequiresPlayerRunTarget(script.Name, script.DeclaredCapabilities)) {
             var decision = CaptureMirrorRunTarget(script.Name);
             if (!decision.Success) {
                 RejectMirrorRunTarget(decision.Error);
@@ -255,7 +266,7 @@ internal partial class IpcProvider {
             return;
         }
         IReadOnlyList<ulong> participantCids;
-        if (MirrorRunTargetValidator.AppliesTo(script.Name)) {
+        if (MirrorRunTargetValidator.AppliesTo(script.Name, script.DeclaredCapabilities)) {
             participantCids = ResolveActiveMirrorLaunchRoster(
                 GetFreshPeerCharacterData().Select(peer => peer.ContentId),
                 DalamudApi.PlayerState.ContentId);
@@ -305,7 +316,18 @@ internal partial class IpcProvider {
         }
         participantCids = CompactVisibleLaunchRoster(
             participantCids,
-            VisibleOnlyRequested(variables));
+            VisibleOnlyRequested(variables),
+            excludePerforming: ExcludePerformingRequested(variables));
+        if (participantCids.Count == 0) {
+            DalamudApi.ChatGui.PrintError("[MoP] No eligible Lua clients are available.");
+            return;
+        }
+        WriteAnchorRosterSlot(
+            variables,
+            participantCids,
+            runTargetName,
+            selectedTargetContentId);
+        WriteAnchorPartySlots(variables, participantCids, runTargetName);
         var envelope = new LuaChatSyncEnvelope {
             MessageId = Guid.NewGuid().ToString("D"),
             CreatedUnixMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
@@ -372,9 +394,13 @@ internal partial class IpcProvider {
 
             for (var index = 0; index < commands.Count; index++) {
                 var command = commands[index];
-                await DalamudApi.Framework
-                    .RunOnFrameworkThread(() => Chat.SendMessageImmediate(command))
-                    .WaitAsync(cancellationToken);
+                // A readable mopluarun received from chat can enter this method while
+                // Dalamud is still dispatching that original chat event. Sending the
+                // encoded envelope synchronously from the same event creates a nested
+                // chat dispatch; suppressing the nested transport message can then also
+                // hide the readable line the player actually typed. Defer transport to
+                // the next framework tick so the original line finishes rendering first.
+                await SendLuaChatTransportOnNextTickAsync(command, cancellationToken);
                 if (index + 1 < commands.Count)
                     await Task.Delay(LuaChatFragmentInterval, cancellationToken);
             }
@@ -389,7 +415,10 @@ internal partial class IpcProvider {
                     NotificationType.Success,
                     6000));
             }
-            if (!preserveStartIdentity && MirrorRunTargetValidator.AppliesTo(scriptName)) {
+            var configuredScript = LuaScriptCatalog.Find(Plugin.Config, scriptName);
+            if (!preserveStartIdentity && MirrorRunTargetValidator.AppliesTo(
+                    scriptName,
+                    configuredScript?.DeclaredCapabilities)) {
                 _mirrorChatLaunch = new MirrorChatLaunchState(
                     chatPrefix,
                     scriptName,
@@ -405,6 +434,27 @@ internal partial class IpcProvider {
                     DalamudApi.ChatGui.PrintError($"[MoP] Could not synchronize Lua '{scriptName}': {ex.Message}"));
             }
         }
+    }
+
+    private static Task SendLuaChatTransportOnNextTickAsync(
+        string command,
+        CancellationToken cancellationToken) {
+        var completion = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        DalamudApi.Framework.RunOnTick(() => {
+            if (cancellationToken.IsCancellationRequested) {
+                completion.TrySetCanceled(cancellationToken);
+                return;
+            }
+
+            try {
+                Chat.SendMessageImmediate(command);
+                completion.TrySetResult(true);
+            } catch (Exception ex) {
+                completion.TrySetException(ex);
+            }
+        });
+        return completion.Task;
     }
 
     private void DisposeLuaChatSyncSender() => _luaChatSendCancellation.Cancel();
@@ -553,7 +603,7 @@ internal partial class IpcProvider {
         if (localCid == 0)
             return;
 
-        var isMirrorV2 = MirrorRunTargetValidator.AppliesTo(script.Name);
+        var isMirrorV2 = MirrorRunTargetValidator.AppliesTo(script.Name, script.DeclaredCapabilities);
         if (isMirrorV2) {
             // Chat Sync spans physical PCs, while fresh peer discovery only spans
             // clients attached to this local plugin instance. The sender therefore
@@ -743,7 +793,7 @@ internal partial class IpcProvider {
 
         var freshPeers = GetFreshPeerCharacterData();
         IReadOnlyList<ulong> orderedParticipants;
-        if (MirrorRunTargetValidator.AppliesTo(script.Name)) {
+        if (MirrorRunTargetValidator.AppliesTo(script.Name, script.DeclaredCapabilities)) {
             orderedParticipants = ResolveActiveMirrorLaunchRoster(
                 freshPeers.Select(peer => peer.ContentId),
                 DalamudApi.PlayerState.ContentId);
@@ -779,7 +829,9 @@ internal partial class IpcProvider {
         }
         orderedParticipants = CompactVisibleLaunchRoster(
             orderedParticipants,
-            VisibleOnlyRequested(variables));
+            VisibleOnlyRequested(variables)
+                || ActiveFormationRosterRequested(variables),
+            excludePerforming: ExcludePerformingRequested(variables));
         if (orderedParticipants.Count == 0) {
             const string error = "No active Lua clients were found.";
             DalamudApi.PluginLog.Warning(
@@ -788,6 +840,9 @@ internal partial class IpcProvider {
             DalamudApi.ShowNotification(error, NotificationType.Error, 6000);
             return;
         }
+
+        WriteAnchorRosterSlot(variables, orderedParticipants, runTargetName);
+        WriteAnchorPartySlots(variables, orderedParticipants, runTargetName);
 
         DalamudApi.PluginLog.Information(
             $"[Lua] broadcasting script; runTarget={runTargetName}; " +
@@ -805,7 +860,7 @@ internal partial class IpcProvider {
             seed,
             variables,
             MacroRuntimeVariables.FromCurrentGameState().Me);
-        if (MirrorRunTargetValidator.AppliesTo(script.Name)) {
+        if (MirrorRunTargetValidator.AppliesTo(script.Name, script.DeclaredCapabilities)) {
             _mirrorLocalLaunch = new MirrorLocalLaunchState(
                 script.Clone(),
                 runTargetObjectId,
@@ -1040,7 +1095,7 @@ internal partial class IpcProvider {
                 return;
             }
             if (Plugin.LuaScriptManager.FindActiveSnapshot(runId) != null) {
-                if (!MirrorRunTargetValidator.AppliesTo(trustedScript.Name))
+                if (!MirrorRunTargetValidator.AppliesTo(trustedScript.Name, trustedScript.DeclaredCapabilities))
                     return;
                 var extensionError = "participant roster update sender is invalid";
                 if (broadcasterId <= 0
@@ -1171,6 +1226,7 @@ internal partial class IpcProvider {
                 DateTimeOffset.UtcNow),
             out _);
         var activeScriptName = Plugin.LuaScriptManager.FindActiveSnapshot(data[0])?.ScriptName;
+        var activeScript = LuaScriptCatalog.Find(Plugin.Config, activeScriptName ?? string.Empty);
         if (accepted
             && Plugin.LuaScriptManager.TryGetCoordinationParticipantSlot(
                 data[0], checked((ulong)message.BroadcasterId), out var senderSlot)
@@ -1179,7 +1235,8 @@ internal partial class IpcProvider {
             // claimed protocol slot still have to agree exactly before persistence.
             && IsValidMirrorStopTombstoneMessage(
                 activeScriptName, data[5], data[6], schemaVersion, targetContentId,
-                checked((ulong)message.BroadcasterId), senderSlot))
+                checked((ulong)message.BroadcasterId), senderSlot,
+                activeScript?.DeclaredCapabilities))
             RecordMirrorStopTombstone(data[0]);
     }
 
@@ -1190,8 +1247,9 @@ internal partial class IpcProvider {
         int schemaVersion,
         ulong targetContentId,
         ulong senderContentId,
-        int senderSlot) {
-        if (!MirrorRunTargetValidator.AppliesTo(scriptName)
+        int senderSlot,
+        IReadOnlyCollection<string>? declaredCapabilities = null) {
+        if (!MirrorRunTargetValidator.AppliesTo(scriptName, declaredCapabilities)
             || !topic.Equals("mirror.v2.stop", StringComparison.Ordinal)
             || schemaVersion != 2
             || targetContentId != 0
@@ -1642,6 +1700,111 @@ internal partial class IpcProvider {
         return result;
     }
 
+    private void WriteAnchorPartySlots(
+        IDictionary<string, string> variables,
+        IReadOnlyList<ulong> orderedParticipants,
+        string runTargetName) {
+        const string key = "mop_anchor_party_slots";
+        variables.Remove(key);
+        if (string.IsNullOrWhiteSpace(runTargetName))
+            return;
+
+        var anchorSlot = variables.TryGetValue("mop_anchor_slot", out var encodedAnchorSlot)
+            && int.TryParse(encodedAnchorSlot, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedAnchorSlot)
+            && parsedAnchorSlot >= 0
+            && parsedAnchorSlot < orderedParticipants.Count
+                ? parsedAnchorSlot
+                : -1;
+        var targetContentId = anchorSlot >= 0 ? orderedParticipants[anchorSlot] : 0;
+
+        var targetPeer = GetFreshPeerCharacterData().FirstOrDefault(peer =>
+            FormationCharacterName.Matches(runTargetName, peer.CharacterName)
+            || FormationCharacterName.Matches(runTargetName, $"{peer.CharacterName}@{peer.HomeWorld}"));
+        if (targetContentId == 0 && targetPeer != null)
+            targetContentId = targetPeer.ContentId;
+        if (targetContentId == 0 || !orderedParticipants.Contains(targetContentId))
+            return;
+
+        var groupName = variables.TryGetValue("anchor_party_group", out var configuredGroupName)
+            ? configuredGroupName
+            : string.Empty;
+        var slots = ResolveAnchorPartySlots(
+            orderedParticipants,
+            targetContentId,
+            targetPeer?.PartyContentIds,
+            Plugin.Config.CidsGroups,
+            groupName);
+        if (slots.Count > 0)
+            variables[key] = string.Join(',', slots);
+    }
+
+    internal static IReadOnlyList<int> ResolveAnchorPartySlots(
+        IReadOnlyList<ulong> orderedParticipants,
+        ulong anchorContentId,
+        IReadOnlyList<ulong>? reportedPartyContentIds,
+        IReadOnlyList<CidGroup> configuredGroups,
+        string? fallbackGroupName) {
+        if (anchorContentId == 0)
+            return Array.Empty<int>();
+
+        var reportedParty = (reportedPartyContentIds ?? Array.Empty<ulong>())
+            .Where(contentId => contentId != 0)
+            .ToHashSet();
+        if (reportedParty.Contains(anchorContentId))
+            return Enumerable.Range(0, orderedParticipants.Count)
+                .Where(index => reportedParty.Contains(orderedParticipants[index]))
+                .ToArray();
+
+        var requestedGroup = fallbackGroupName?.Trim() ?? string.Empty;
+        if (requestedGroup.Length == 0)
+            return Array.Empty<int>();
+        var configuredParty = configuredGroups.FirstOrDefault(group =>
+            group.Name.Equals(requestedGroup, StringComparison.OrdinalIgnoreCase)
+            && group.Cids.Contains(anchorContentId));
+        if (configuredParty == null)
+            return Array.Empty<int>();
+
+        var configuredContentIds = configuredParty.Cids
+            .Where(contentId => contentId != 0)
+            .ToHashSet();
+        return Enumerable.Range(0, orderedParticipants.Count)
+            .Where(index => configuredContentIds.Contains(orderedParticipants[index]))
+            .ToArray();
+    }
+
+    private void WriteAnchorRosterSlot(
+        IDictionary<string, string> variables,
+        IReadOnlyList<ulong> orderedParticipants,
+        string runTargetName,
+        ulong preferredContentId = 0) {
+        const string key = "mop_anchor_slot";
+        variables.Remove(key);
+        if (string.IsNullOrWhiteSpace(runTargetName))
+            return;
+
+        var contentId = preferredContentId;
+        if (contentId == 0) {
+            contentId = GetFreshPeerCharacterData().FirstOrDefault(peer =>
+                FormationCharacterName.Matches(runTargetName, peer.CharacterName)
+                || FormationCharacterName.Matches(runTargetName, $"{peer.CharacterName}@{peer.HomeWorld}"))
+                ?.ContentId ?? 0;
+        }
+        if (contentId == 0) {
+            contentId = Plugin.Config.Characters.FirstOrDefault(character =>
+                character.Cid != 0
+                && FormationCharacterName.Matches(runTargetName, character.Name))
+                ?.Cid ?? 0;
+        }
+
+        var slot = contentId == 0
+            ? -1
+            : Enumerable.Range(0, orderedParticipants.Count).FirstOrDefault(
+                index => orderedParticipants[index] == contentId,
+                -1);
+        if (slot >= 0)
+            variables[key] = slot.ToString(CultureInfo.InvariantCulture);
+    }
+
     internal static bool TryResolveParticipantGroup(
         IReadOnlyList<CidGroup> groups,
         IReadOnlyDictionary<string, string> variables,
@@ -1676,7 +1839,18 @@ internal partial class IpcProvider {
     }
 
     private static bool VisibleOnlyRequested(IReadOnlyDictionary<string, string> variables) =>
-        variables.TryGetValue("visible_only", out var value)
+        BooleanVariableRequested(variables, "visible_only");
+
+    internal static bool ActiveFormationRosterRequested(IReadOnlyDictionary<string, string> variables) =>
+        BooleanVariableRequested(variables, "active_formation_roster");
+
+    internal static bool ExcludePerformingRequested(IReadOnlyDictionary<string, string> variables) =>
+        BooleanVariableRequested(variables, "exclude_performing");
+
+    private static bool BooleanVariableRequested(
+        IReadOnlyDictionary<string, string> variables,
+        string name) =>
+        variables.TryGetValue(name, out var value)
         && (value.Equals("true", StringComparison.OrdinalIgnoreCase)
             || value.Equals("yes", StringComparison.OrdinalIgnoreCase)
             || value.Equals("on", StringComparison.OrdinalIgnoreCase)
@@ -1731,17 +1905,35 @@ internal partial class IpcProvider {
 
     private IReadOnlyList<ulong> CompactVisibleLaunchRoster(
         IReadOnlyList<ulong> roster,
-        bool visibleOnly = false) {
-        if (!visibleOnly)
-            return roster.Where(cid => cid != 0).Distinct().ToArray();
+        bool visibleOnly = false,
+        bool forceSameZoneVisibility = false,
+        bool excludePerforming = false) {
+        var performing = excludePerforming
+            ? GetFreshPeerCharacterData()
+                .Where(peer => peer.IsPerforming)
+                .Select(peer => peer.ContentId)
+                .ToHashSet()
+            : [];
+        if (excludePerforming && DalamudApi.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.Performing])
+            performing.Add(DalamudApi.PlayerState.ContentId);
+
+        var eligibleRoster = roster
+            .Where(cid => cid != 0 && !performing.Contains(cid))
+            .Distinct()
+            .ToArray();
+        if (!visibleOnly && !forceSameZoneVisibility)
+            return eligibleRoster;
 
         var alwaysInclude = GetFreshPeerCharacterData()
+            .Where(peer => !forceSameZoneVisibility
+                || (peer.TerritoryId == DalamudApi.ClientState.TerritoryType
+                    && peer.InstanceId == DalamudApi.ClientState.Instance))
             .Select(peer => peer.ContentId)
             .Append(DalamudApi.PlayerState.ContentId)
             .Where(cid => cid != 0)
             .ToHashSet();
         return LuaParticipantResolver.CompactVisible(
-            roster,
+            eligibleRoster,
             LuaParticipantResolver.CharacterNames(Plugin.Config.Characters),
             alwaysInclude);
     }

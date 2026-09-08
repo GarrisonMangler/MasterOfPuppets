@@ -41,6 +41,23 @@ public partial class MacroHandler {
         return Task.CompletedTask;
     }
 
+    private Task HandleMopEquipItem(string macroId, string args, CancellationToken token) {
+        var itemName = args.Trim().Trim('"');
+        if (string.IsNullOrWhiteSpace(itemName)) {
+            DalamudApi.PluginLog.Warning("[mopequipitem] missing item name");
+            return Task.CompletedTask;
+        }
+
+        DalamudApi.Framework.RunOnFrameworkThread(() => {
+            var result = ArmouryItemManager.EquipByName(itemName);
+            if (!result.Success)
+                DalamudApi.PluginLog.Warning($"[mopequipitem] {result.Message}");
+            else
+                DalamudApi.PluginLog.Debug($"[mopequipitem] {result.Message}");
+        });
+        return Task.CompletedTask;
+    }
+
     private Task HandleMopPetBarSlot(string macroId, string args, CancellationToken token) {
         if (string.IsNullOrWhiteSpace(args) || !int.TryParse(args, out int slotIndex)) {
             DalamudApi.PluginLog.Warning($"[moppetbarslot] invalid argument: \"{args}\"");

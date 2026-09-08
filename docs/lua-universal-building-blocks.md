@@ -28,7 +28,7 @@ rounding.
 ## One-shot discovery
 
 ```lua
-local result = mop.actors.find("Athena Potato@Sargatanas")
+local result = mop.actors.find("Character Alpha@ExampleWorld")
 
 if result.status == "found" then
     local actor = result.actor
@@ -48,7 +48,7 @@ and ambiguous names are rejected rather than depending on object-table order.
 ## Shared low-overhead watches
 
 ```lua
-local query = "Athena Potato@Sargatanas"
+local query = "Character Alpha@ExampleWorld"
 local watched = mop.actors.watch(query)
 
 if watched.status ~= "found" then
@@ -109,7 +109,7 @@ need to inspect the groups they care about.
 The simplest reaction API binds the event to the actor query for you:
 
 ```lua
-local query = "Athena Potato@Sargatanas"
+local query = "Character Alpha@ExampleWorld"
 local jump = mop.actors.next_event(query, "jump", 30)
 
 if jump.status == "event" and jump.data.is_jumping == "true" then
@@ -129,7 +129,7 @@ ID because one run may watch several actors:
 ```lua
 mop.capabilities.require("mop.events", "3.0.0")
 
-local watched = mop.actors.watch("Athena Potato@Sargatanas")
+local watched = mop.actors.watch("Character Alpha@ExampleWorld")
 
 while mop.is_running() do
     local event = mop.events.next(nil, 30)

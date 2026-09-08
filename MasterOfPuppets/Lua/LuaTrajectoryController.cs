@@ -6,6 +6,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 
 using MasterOfPuppets.Extensions;
 using MasterOfPuppets.Extensions.Dalamud;
+using MasterOfPuppets.Camera;
 using MasterOfPuppets.Formations;
 using MasterOfPuppets.LuaScripting.Choreography;
 using MasterOfPuppets.LuaScripting.Runs;
@@ -31,6 +32,7 @@ internal sealed class LuaTrajectoryController {
     private long _lastAnchorSeenMs;
     private double _lastSubmittedElapsedSeconds = double.NegativeInfinity;
     private LuaTrajectorySample? _previousSubmittedSample;
+    private float? _pathFacing;
     private Vector3? _lastAnchorPosition;
     private long _lastAnchorPositionMs;
     private int _pathDirection = 1;
@@ -72,6 +74,7 @@ internal sealed class LuaTrajectoryController {
         _lastAnchorSeenMs = Environment.TickCount64;
         _lastSubmittedElapsedSeconds = double.NegativeInfinity;
         _previousSubmittedSample = null;
+        _pathFacing = null;
         _lastAnchorPosition = null;
         _lastAnchorPositionMs = 0;
         _lastAnchorMovingMs = 0;
@@ -80,6 +83,10 @@ internal sealed class LuaTrajectoryController {
         _follower.Reset();
         Diagnostics = null;
         _savedWalking ??= SimpleMovementWalkState.IsWalking;
+        // A shared trajectory must not inherit different per-client gait states.
+        // Mixed walk/run speeds cause the same fixed slots to fall behind as pace
+        // increases. Restore each user's original state when the run stops.
+        SimpleMovementWalkState.IsWalking = false;
     }
 
     public void Publish(LuaTrajectorySample sample) {
@@ -112,6 +119,7 @@ internal sealed class LuaTrajectoryController {
 
         var anchor = ResolveAnchor();
         if (anchor == null) {
+            GameCameraManager.SetTrackingAnchor(null);
             if (Environment.TickCount64 - _lastAnchorSeenMs >= AnchorLossTimeoutMs) {
                 DalamudApi.PluginLog.Warning($"[Lua] script anchor lost: {_anchorName}");
                 _plugin.LuaScriptManager.StopLocal("target lost");
@@ -120,10 +128,14 @@ internal sealed class LuaTrajectoryController {
         }
 
         _lastAnchorSeenMs = Environment.TickCount64;
-        // Recompute from the live target every framework tick. Lua only publishes
-        // the relative slot at 30 Hz; using a stale anchor position lets the
-        // circle collapse into a wake behind a moving target.
-        var worldPosition = anchor.Position + sample.Value.RelativeOffset;
+        GameCameraManager.SetTrackingAnchor(sample.Value.TrackCameraAnchor ? anchor.Position : null);
+        // Lua publishes points in the anchor's local frame. Reapply the live
+        // anchor transform every framework tick so both translation and turns
+        // carry the entire shape with the target.
+        var worldPosition = TransformPosition(
+            sample.Value.RelativeOffset,
+            anchor.Position,
+            anchor.Rotation);
         var player = DalamudApi.ObjectTable.LocalPlayer;
         if (player == null)
             return;
@@ -150,6 +162,12 @@ internal sealed class LuaTrajectoryController {
         }
 
         if (sample.Value.ElapsedSeconds > _lastSubmittedElapsedSeconds) {
+            if (_previousSubmittedSample is { } previousSample) {
+                var pathDelta = sample.Value.RelativeOffset - previousSample.RelativeOffset;
+                pathDelta.Y = 0f;
+                if (pathDelta.LengthSquared() > 0.000001f)
+                    _pathFacing = MathF.Atan2(pathDelta.X, pathDelta.Z);
+            }
             Diagnostics = TryFollowCircularPath(
                 anchor.Position,
                 anchorVelocity,
@@ -170,23 +188,45 @@ internal sealed class LuaTrajectoryController {
             var lead = new Vector3(anchorVelocity.X, 0f, anchorVelocity.Z) * 0.16f;
             trackingPoint += lead;
         }
-        var planarError = new Vector2(
-            player.Position.X - trackingPoint.X,
-            player.Position.Z - trackingPoint.Z).Length();
+        // Moving paths face along their measured tangent. Stationary authored
+        // points, such as clock markers, retain the script-supplied facing.
+        var tangentFacing = TransformFacing(
+            ResolveFacing(_pathFacing, sample.Value.FacingRadians),
+            anchor.Rotation);
 
         _plugin.SimpleInputMovement.MoveTo(
             trackingPoint,
             precision: TrajectoryPrecision,
-            faceDirection: null,
+            faceDirection: tangentFacing,
             movementMode: SimpleMovementMode.Natural,
             stopOnStuck: false,
             trackingKey: _trackingKey,
+            useFormationRelativeMovement: true,
             usePursuitTarget: false,
-            allowHoldWhileTargetMoving: false,
-            rateLimitTravelFacing: planarError <= 0.45f);
+            // Permit the Natural strategy's 0.08 / 0.16 hysteretic hold around
+            // the live slot. Without this, full run input crosses the slot and
+            // reverses on successive frames, shaking a camera attached to a
+            // participating main character.
+            allowHoldWhileTargetMoving: true,
+            rateLimitTravelFacing: true);
+    }
+
+    internal static float ResolveFacing(float? pathFacing, float authoredFacing) =>
+        pathFacing ?? authoredFacing;
+
+    internal static Vector3 TransformPosition(
+        Vector3 relativeOffset,
+        Vector3 anchorPosition,
+        float anchorRotation) =>
+        anchorPosition + FormationMath.RotateOffset(relativeOffset, anchorRotation);
+
+    internal static float TransformFacing(float localFacing, float anchorRotation) {
+        var worldFacing = localFacing + anchorRotation;
+        return MathF.Atan2(MathF.Sin(worldFacing), MathF.Cos(worldFacing));
     }
 
     public void Stop(bool stopMovement) {
+        GameCameraManager.SetTrackingAnchor(null);
         _trackingKey = null;
         _lastSubmittedElapsedSeconds = double.NegativeInfinity;
         lock (_sampleLock) {
@@ -194,6 +234,7 @@ internal sealed class LuaTrajectoryController {
             _lastAcceptedSample = null;
         }
         _previousSubmittedSample = null;
+        _pathFacing = null;
         _lastAnchorPosition = null;
         _lastAnchorPositionMs = 0;
         _lastAnchorMovingMs = 0;
@@ -223,11 +264,17 @@ internal sealed class LuaTrajectoryController {
         if (delta is <= 0.0001 or > 0.25 || radius < 1f || previousRadius < 1f)
             return false;
 
-        var desiredPhase = MathF.Atan2(sample.RelativeOffset.X, sample.RelativeOffset.Z);
+        // The follower compares this phase with the player's world-space phase,
+        // so derive it from the already transformed destination.
+        var worldOffset = worldPosition - anchorPosition;
+        var desiredPhase = MathF.Atan2(worldOffset.X, worldOffset.Z);
+        // Orbit direction and speed remain properties of the Lua-authored local
+        // path; an anchor turn must not masquerade as hand motion.
+        var localPhase = MathF.Atan2(sample.RelativeOffset.X, sample.RelativeOffset.Z);
         var previousPhase = MathF.Atan2(previous.RelativeOffset.X, previous.RelativeOffset.Z);
         var phaseDelta = MathF.Atan2(
-            MathF.Sin(desiredPhase - previousPhase),
-            MathF.Cos(desiredPhase - previousPhase));
+            MathF.Sin(localPhase - previousPhase),
+            MathF.Cos(localPhase - previousPhase));
         if (MathF.Abs(phaseDelta) > 0.00001f)
             _pathDirection = phaseDelta >= 0f ? 1 : -1;
         var tangentialSpeed = Math.Clamp(radius * MathF.Abs(phaseDelta) / (float)delta, 0f, MaximumSampleSpeed);

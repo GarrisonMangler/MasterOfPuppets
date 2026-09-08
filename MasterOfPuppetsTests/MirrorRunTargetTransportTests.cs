@@ -19,6 +19,19 @@ public sealed class MirrorRunTargetTransportTests {
         Assert.Equal(TimeSpan.FromMilliseconds(milliseconds), IpcProvider.GetMirrorStopRelayDelay(slot));
     }
 
+    [Fact]
+    public void StopTombstone_AcceptsGenericMirrorProtocolCapability() {
+        Assert.True(IpcProvider.IsValidMirrorStopTombstoneMessage(
+            "Private Script",
+            "mirror.v2.stop",
+            "2|X|target|7",
+            2,
+            0,
+            42,
+            7,
+            [MirrorRunTargetValidator.ProtocolCapability]));
+    }
+
     [Theory]
     [InlineData(-1)]
     [InlineData(32)]

@@ -46,6 +46,13 @@ public sealed class ActionsLuaCapabilityProvider : ILuaCapabilityProvider {
                 selector, classJobId, cancellationToken)));
         });
 
+        var items = registration.GetOrCreateModule("items");
+        items["equip"] = new LuaFunction(async (call, cancellationToken) => {
+            var itemName = call.GetArgument<string>(0);
+            registration.Quota.ConsumeGameAction();
+            return call.Return(ToLua(await Facade(registration).EquipArmouryItemAsync(itemName, cancellationToken)));
+        });
+
         var actions = registration.GetOrCreateModule("actions");
         actions["jump"] = new LuaFunction(async (call, cancellationToken) => {
             registration.Quota.ConsumeGameAction();

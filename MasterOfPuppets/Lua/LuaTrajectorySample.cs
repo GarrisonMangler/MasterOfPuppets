@@ -6,7 +6,8 @@ namespace MasterOfPuppets.LuaScripting;
 public readonly record struct LuaTrajectorySample(
     Vector3 RelativeOffset,
     float FacingRadians,
-    double ElapsedSeconds) {
+    double ElapsedSeconds,
+    bool TrackCameraAnchor = false) {
 
     // A 16-column row at one-yalm spacing with a three-yalm opposite-row
     // offset reaches roughly 15.3 yalms from its left-most anchor.

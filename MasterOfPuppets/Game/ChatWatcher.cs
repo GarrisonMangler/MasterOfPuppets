@@ -11,6 +11,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using MasterOfPuppets.Extensions.Dalamud;
 using MasterOfPuppets.Formations;
 using MasterOfPuppets.Ipc;
+using MasterOfPuppets.LuaScripting;
 using MasterOfPuppets.LuaScripting.Automation;
 using MasterOfPuppets.LuaScripting.Synchronization;
 using MasterOfPuppets.Movement;
@@ -313,10 +314,13 @@ internal class ChatWatcher : IDisposable {
 
         if (!string.IsNullOrWhiteSpace(senderName)) {
             inlineVariables ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var configuredScript = LuaScriptCatalog.Find(Plugin.Config, args[0]);
             if (!inlineVariables.ContainsKey("mop_origin"))
                 inlineVariables["mop_origin"] = senderName;
             if (!inlineVariables.ContainsKey("anchor")
-                && ShouldDefaultReadableLuaRunAnchorToSender(args[0]))
+                && ShouldDefaultReadableLuaRunAnchorToSender(
+                    args[0],
+                    configuredScript?.DeclaredCapabilities))
                 inlineVariables["anchor"] = senderName;
         }
 
@@ -335,8 +339,10 @@ internal class ChatWatcher : IDisposable {
         && !string.IsNullOrWhiteSpace(localName)
         && FormationCharacterName.Matches(senderName, localName);
 
-    internal static bool ShouldDefaultReadableLuaRunAnchorToSender(string scriptName) =>
-        !MirrorRunTargetValidator.RequiresPlayerRunTarget(scriptName);
+    internal static bool ShouldDefaultReadableLuaRunAnchorToSender(
+        string scriptName,
+        IReadOnlyCollection<string>? declaredCapabilities = null) =>
+        !MirrorRunTargetValidator.RequiresPlayerRunTarget(scriptName, declaredCapabilities);
 
     private void HandleLuaChunk(string[] args, string senderName) {
         if (!LuaChatSyncFragmentCodec.TryParseArguments(args, out var fragment, out var parseError)) {
@@ -392,9 +398,12 @@ internal class ChatWatcher : IDisposable {
             return;
         }
 
-        Plugin.IpcProvider.UpdateMacroVariables(variables);
+        var scriptSelector = args.FirstOrDefault(arg =>
+            !arg.StartsWith("-var=", StringComparison.OrdinalIgnoreCase));
+        Plugin.IpcProvider.UpdateMacroVariables(variables, scriptSelector);
         DalamudApi.PluginLog.Information(
-            $"[LuaSync] accepted {variables.Count} live variable(s) from {senderName}");
+            $"[LuaSync] accepted {variables.Count} live variable(s) from {senderName}"
+            + (string.IsNullOrWhiteSpace(scriptSelector) ? string.Empty : $" for {scriptSelector}"));
     }
 
     internal static Dictionary<string, string> ParseLuaVariableUpdateArguments(

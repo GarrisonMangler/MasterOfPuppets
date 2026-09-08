@@ -74,10 +74,10 @@ public sealed class LuaActorWatchTests {
     }
 
     [Theory]
-    [InlineData("Athena Potato@Sargatanas", "Athena Potato@Sargatanas", true)]
-    [InlineData("Athena Potato@Sargatanas", "Athena Potato@Midgardsormr", false)]
-    [InlineData("Athena Potato", "Athena Potato@Sargatanas", true)]
-    [InlineData("Athena", "Athena Potato@Sargatanas", true)]
+    [InlineData("Character Alpha@ExampleWorld", "Character Alpha@ExampleWorld", true)]
+    [InlineData("Character Alpha@ExampleWorld", "Character Alpha@OtherWorld", false)]
+    [InlineData("Character Alpha", "Character Alpha@ExampleWorld", true)]
+    [InlineData("Character", "Character Alpha@ExampleWorld", true)]
     public void PlayerQuery_WorldQualifiedNamesDoNotDegradeToBaseName(
         string query,
         string actorName,
@@ -219,7 +219,7 @@ public sealed class LuaActorWatchTests {
                 "watch-1",
                 query,
                 "found",
-                "Artemis Potato@Sargatanas",
+                "Character Beta@ExampleWorld",
                 "Role-playing",
                 State(positionX: 1, positionY: 2, positionZ: 3, emoteId: 7,
                     emoteLooping: true, targetId: 900, classJobId: 33)) {
@@ -229,7 +229,7 @@ public sealed class LuaActorWatchTests {
             UnwatchActor: (watchId, _) => Task.FromResult(watchId == "watch-1")));
 
         await runner.RunAsync("""
-            local watched = mop.actors.watch("Artemis Potato@Sargatanas")
+            local watched = mop.actors.watch("Character Beta@ExampleWorld")
             assert(watched.status == "found" and watched.watch_id == "watch-1")
             assert(watched.count == 1)
             assert(watched.actor.emote_id == 7 and watched.actor.is_emote_looping)
@@ -251,7 +251,7 @@ public sealed class LuaActorWatchTests {
                 "watch-external",
                 query,
                 "found",
-                "Athena Potato@Sargatanas",
+                "Character Alpha@ExampleWorld",
                 string.Empty,
                 State(classJobId: 33)) {
                 Revision = 7,
@@ -270,16 +270,16 @@ public sealed class LuaActorWatchTests {
 
         await runner.RunAsync("""
             assert(mop.capabilities.has("mop.game-state", "3.0.0"))
-            local job = mop.actors.job("Athena Potato@Sargatanas")
+            local job = mop.actors.job("Character Alpha@ExampleWorld")
             assert(job.status == "observed" and job.class_job_id == 33)
-            assert(job.actor.name == "Athena Potato@Sargatanas")
+            assert(job.actor.name == "Character Alpha@ExampleWorld")
 
-            local changed = mop.actors.wait_changed("Athena Potato@Sargatanas", 6, 1)
+            local changed = mop.actors.wait_changed("Character Alpha@ExampleWorld", 6, 1)
             assert(changed.status == "changed" and changed.actor_status == "found")
             assert(changed.revision == 7 and changed.changes.class_job)
 
             local job_changed = mop.actors.wait_job_changed(
-                "Athena Potato@Sargatanas", 24, 1, "100")
+                "Character Alpha@ExampleWorld", 24, 1, "100")
             assert(job_changed.status == "changed")
             assert(job_changed.previous_class_job_id == 24 and job_changed.class_job_id == 33)
             assert(job_changed.actor.game_object_id == "100")
@@ -321,7 +321,7 @@ public sealed class LuaActorWatchTests {
                 "watch-external",
                 query,
                 "found",
-                "Athena Potato@Sargatanas",
+                "Character Alpha@ExampleWorld",
                 string.Empty,
                 State(classJobId: 33)) { MatchCount = 1 });
 
@@ -337,7 +337,7 @@ public sealed class LuaActorWatchTests {
 
         await runner.RunAsync("""
             assert(mop.capabilities.has("mop.game-state", "4.0.0"))
-            local query = "Athena Potato@Sargatanas"
+            local query = "Character Alpha@ExampleWorld"
             assert(mop.actors.next_event(query, "combat_action", 1).data.marker == "actor.combat_action")
             assert(mop.actors.next_event(query, "general_action", 1).data.marker == "actor.general_action")
             assert(mop.actors.next_event(query, "jump", 1).data.marker == "actor.jump")
@@ -387,17 +387,17 @@ public sealed class LuaActorWatchTests {
         Task<LuaActorWatchRegistration> Watch(string query, CancellationToken _) {
             if (query == LuaActorWatchService.SelfQuery) {
                 return Task.FromResult(new LuaActorWatchRegistration(
-                    "watch-self", query, "found", "Artemis Potato@Sargatanas", string.Empty,
+                    "watch-self", query, "found", "Character Beta@ExampleWorld", string.Empty,
                     State(gameObjectId: 100, entityId: 200, positionX: 0)) { Revision = 1 });
             }
 
             targetCalls++;
             return Task.FromResult(targetCalls < 3
                 ? new LuaActorWatchRegistration(
-                    "watch-target", query, "found", "Athena Potato@Sargatanas", string.Empty,
+                    "watch-target", query, "found", "Character Alpha@ExampleWorld", string.Empty,
                     State(gameObjectId: 300, entityId: 400, positionX: 0.5f)) { Revision = 1 }
                 : new LuaActorWatchRegistration(
-                    "watch-target", query, "missing", "Athena Potato@Sargatanas", string.Empty, null) {
+                    "watch-target", query, "missing", "Character Alpha@ExampleWorld", string.Empty, null) {
                     Revision = 2,
                     Changes = LuaActorWatchChange.Availability,
                 });
@@ -414,11 +414,11 @@ public sealed class LuaActorWatchTests {
             WatchActor: Watch));
 
         await runner.RunAsync("""
-            local visible = mop.actors.wait_visible("Athena Potato@Sargatanas", 1)
+            local visible = mop.actors.wait_visible("Character Alpha@ExampleWorld", 1)
             assert(visible.status == "found" and visible.actor.game_object_id == "300")
-            local close = mop.actors.wait_proximity("Athena Potato@Sargatanas", 1, 1)
+            local close = mop.actors.wait_proximity("Character Alpha@ExampleWorld", 1, 1)
             assert(close.status == "found" and close.distance == 0.5)
-            local lost = mop.actors.wait_lost("Athena Potato@Sargatanas", 1)
+            local lost = mop.actors.wait_lost("Character Alpha@ExampleWorld", 1)
             assert(lost.status == "lost" and lost.revision == 2)
             """, CancellationToken.None);
 

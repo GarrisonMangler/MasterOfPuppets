@@ -19,7 +19,7 @@ public class ArgsParserTests
     [InlineData("moprun \"My Macro Name\" -var=$emote=/ac \"standard step\";$emote2=/clap", "moprun", "My Macro Name", "-var=$emote=/ac \"standard step\";$emote2=/clap")]
     [InlineData("moprun \"My Macro Name\" -var=$var1=/clap;$var2=0.5;$var3=\"Character Name\";$emote=/clap;$emote2=\"/clap\"", "moprun", "My Macro Name", "-var=$var1=/clap;$var2=0.5;$var3=\"Character Name\";$emote=/clap;$emote2=\"/clap\"")]
     [InlineData("moprun \"My -- Macro\" -var=$x=1", "moprun", "My -- Macro", "-var=$x=1")]
-    [InlineData("mopluarun \"Bee Swarm\" -var=$group=\"32 Ordered\";$anchor=\"Kazuko Aura@Sargatanas\"", "mopluarun", "Bee Swarm", "-var=$group=\"32 Ordered\";$anchor=\"Kazuko Aura@Sargatanas\"")]
+    [InlineData("mopluarun \"Bee Swarm\" -var=$group=\"32 Ordered\";$anchor=\"Character Alpha@ExampleWorld\"", "mopluarun", "Bee Swarm", "-var=$group=\"32 Ordered\";$anchor=\"Character Alpha@ExampleWorld\"")]
     [InlineData("mopstop", "mopstop")]
     [InlineData("mopbr Text", "mopbr", "Text")]
     [InlineData("mopbr \"Text with spaces\"", "mopbr", "Text with spaces")]
@@ -218,9 +218,9 @@ public class ArgsParserTests
     }
 
     [Theory]
-    [InlineData("-var=\"Garrison Mangler@Sargatanas\"", "Garrison Mangler@Sargatanas")]
-    [InlineData("-var='Garrison Mangler@Sargatanas'", "Garrison Mangler@Sargatanas")]
-    [InlineData("-var=Garrison Mangler@Sargatanas", "Garrison Mangler@Sargatanas")]
+    [InlineData("-var=\"Character Alpha@ExampleWorld\"", "Character Alpha@ExampleWorld")]
+    [InlineData("-var='Character Alpha@ExampleWorld'", "Character Alpha@ExampleWorld")]
+    [InlineData("-var=Character Alpha@ExampleWorld", "Character Alpha@ExampleWorld")]
     public void ParseInlineVars_RawTargetName_CapturedAsAnchor(string flag, string expectedAnchor)
     {
         var result = ArgumentParser.ParseInlineVars(flag);

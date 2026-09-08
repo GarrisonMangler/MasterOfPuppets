@@ -392,6 +392,20 @@ and equip results contain `ok`, `status`, `message`, `gearset`, and
 `candidates`, so scripts can handle `missing`, `ambiguous`, and `job_mismatch`
 without parsing text.
 
+### Armoury item equip (`mop.items`)
+
+`mop.items.equip(item_name)` finds an exact, case-insensitive item name in the
+local armoury chest and submits an equip request. The caller does not need to
+know the armoury category or equipment slot. A ring uses the first available
+ring slot; the request is rejected when both ring slots are occupied.
+
+```lua
+local result = mop.items.equip("Augmented Cryptlurker's Sword")
+if not result.ok then
+    error(result.message)
+end
+```
+
 These calls require declared game-action, chat/action-budget, or movement
 resources as appropriate and consume the centralized action-rate quota. Scope
 never broadcasts implicitly. The movement-only stop intentionally leaves the
@@ -434,8 +448,10 @@ or non-identifier segments are rejected. A bundle supports at most 64 modules,
 | `mop.get_seed()` | Returns the shared random seed for the run. |
 | `mop.get_run_target()` | Returns the captured dynamic run target, or `nil` when unavailable. |
 | `mop.names_match(a, b)` | Compares character names using MoP's world/name normalization. |
+| `mop.clock_seconds(clock)` | Returns seconds since midnight for `eorzea`, `eastern`, `central`, `mountain`, or `pacific`; US zones apply daylight-saving rules. |
 | `mop.set_anchor(name)` | Selects the actor used as the origin of subsequent trajectory samples. |
 | `mop.trajectory_update(x, z, facing)` | Publishes the next anchor-relative trajectory sample. |
+| `mop.pet_trajectory_update(x, z, anchor?, interval?, deadband?)` | Publishes an anchor-relative summoned-pet destination. The native controller follows the live anchor, coalesces samples, suppresses redundant placements, and safely rate-limits Place commands without spending the Lua action quota. |
 | `mop.follow_actor(options)` | Continuously follows the first visible actor from an ordered fallback list. |
 | `mop.chat(text)` | Queues one chat command or message. |
 | `mop.say(text)` | Sends one `/say` message. |
@@ -445,6 +461,35 @@ Every run has a unique synchronized ID and a maximum lifetime of ten minutes.
 Use `/mop lua pause|resume|stop|restart|status [run-id|"Script Name"]`, or the
 per-run controls in the Scripts window. Disjoint declared resources may coexist;
 conflicting leases are rejected with the owning run ID.
+
+Set the launch variable `$exclude_performing = true` when a choreography should
+omit clients currently using Performance mode. The runtime defaults this option
+to `false`; scripts that require the exclusion should declare their own default.
+
+Set `$active_formation_roster = true` when a script should compact its launch
+roster to clients currently visible in the active formation. The runtime defaults
+this option to `false`; the behavior is variable-driven and is not tied to a
+particular script name.
+
+`mop.trajectory_update(x, z, facing[, track_camera_anchor])` accepts an optional
+fourth boolean. When `true`, an enabled overhead camera remains centered on the
+live choreography anchor. Camera tracking is off by default and is cleared when
+the trajectory stops.
+
+Live-variable updates may include an optional run ID or script-name selector.
+Selected updates use case-insensitive exact matching; omitting the selector keeps
+the existing behavior of updating every active Lua run.
+
+Scripts that require the distributed Mirror v2 lifecycle declare the
+`mop.mirror-protocol` capability. This enables run-target validation, dynamic
+roster handling, emote resynchronization, heartbeat, and coordinated stop
+propagation without tying those behaviors to a private script name.
+
+`mop.get_anchor_slot()` returns the selected anchor's zero-based position in the
+synchronized roster. `mop.get_anchor_party_slots()` returns the roster positions
+reported as the anchor's current in-game party. If that party data is unavailable,
+a script may set `$anchor_party_group = "Exact Group Name"` to use one configured
+character group as an explicit fallback; the group must contain the anchor.
 
 Expand **Logs and diagnostics** below an active or most recent run to inspect a
 bounded 200-line script/error console and the event queue's published,

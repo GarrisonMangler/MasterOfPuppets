@@ -10,6 +10,7 @@ internal static unsafe class GameCameraManager {
     private static bool _enabled;
     private static float _yOffset;
     private static float _currentY;
+    private static Vector3? _trackingAnchor;
     public static bool Enabled => _enabled;
     public static float CurrentY => _currentY;
     public static float YOffset => _yOffset;
@@ -67,6 +68,12 @@ internal static unsafe class GameCameraManager {
             _enabled = true;
     }
 
+    /// <summary>
+    /// Keeps an enabled overhead camera centered on a world-space choreography
+    /// anchor instead of on the local character orbiting around it.
+    /// </summary>
+    public static void SetTrackingAnchor(Vector3? anchor) => _trackingAnchor = anchor;
+
     private static void Detour(
         GameCamera* camera,
         IntPtr target,
@@ -82,6 +89,19 @@ internal static unsafe class GameCameraManager {
         if (!_enabled)
             return;
 
+        if (_trackingAnchor is { } anchor) {
+            // Translate from the focal point produced by the game this frame.
+            // Using the player position and then incrementing lookAt accumulated
+            // corrections when the game retained our prior value, causing jitter.
+            var offset = new Vector3(
+                anchor.X - camera->lookAtX,
+                0f,
+                anchor.Z - camera->lookAtZ);
+            position->X += offset.X;
+            position->Z += offset.Z;
+            camera->lookAtX = anchor.X;
+            camera->lookAtZ = anchor.Z;
+        }
         position->Y += _yOffset;
     }
 
@@ -96,5 +116,6 @@ internal static unsafe class GameCameraManager {
 
         _enabled = false;
         _yOffset = 0f;
+        _trackingAnchor = null;
     }
 }

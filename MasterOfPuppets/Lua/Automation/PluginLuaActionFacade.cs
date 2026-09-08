@@ -454,6 +454,20 @@ internal sealed class PluginLuaActionFacade : ILuaActionFacade {
         return OnFramework(() => ResolveAndEquip(classJobId, selector), cancellationToken);
     }
 
+    public Task<LuaAutomationResult> EquipArmouryItemAsync(
+        string itemName,
+        CancellationToken cancellationToken) {
+        _ensureResource(LuaResourceKind.GameActions, "items.equip");
+        if (string.IsNullOrWhiteSpace(itemName))
+            return Task.FromResult(LuaAutomationResult.Rejected("item name is required"));
+        return OnFramework(() => {
+            var result = ArmouryItemManager.EquipByName(itemName);
+            return result.Success
+                ? LuaAutomationResult.Queued(result.Message)
+                : LuaAutomationResult.Rejected(result.Message);
+        }, cancellationToken);
+    }
+
     private GearsetResolution ResolveAndEquip(uint? requiredClassJobId, GearsetSelector selector) {
         var resolution = GearsetManager.ResolveGearset(
             requiredClassJobId.HasValue ? (byte)requiredClassJobId.Value : null,

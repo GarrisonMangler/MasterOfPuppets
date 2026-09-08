@@ -104,6 +104,9 @@ public sealed class MirrorRunTargetValidationTests {
         Assert.False(MirrorRunTargetValidator.AppliesTo(LuaScriptCatalog.DefaultMirrorTargetCombatName));
         Assert.False(MirrorRunTargetValidator.AppliesTo("Dynamic Conga Line"));
         Assert.False(MirrorRunTargetValidator.AppliesTo(null));
+        Assert.True(MirrorRunTargetValidator.AppliesTo(
+            "Private Script",
+            [MirrorRunTargetValidator.ProtocolCapability]));
     }
 
     [Theory]

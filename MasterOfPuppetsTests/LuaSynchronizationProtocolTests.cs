@@ -19,10 +19,10 @@ public sealed class LuaSynchronizationProtocolTests {
     }
 
     [Theory]
-    [InlineData("Leader Character", "Leader Character@Sargatanas", true)]
-    [InlineData("Leader Character@Sargatanas", "Leader Character@Sargatanas", true)]
-    [InlineData("Remote Puppet@Sargatanas", "Leader Character@Sargatanas", false)]
-    [InlineData("", "Leader Character@Sargatanas", false)]
+    [InlineData("Leader Character", "Leader Character@ExampleWorld", true)]
+    [InlineData("Leader Character@ExampleWorld", "Leader Character@ExampleWorld", true)]
+    [InlineData("Remote Puppet@ExampleWorld", "Leader Character@ExampleWorld", false)]
+    [InlineData("", "Leader Character@ExampleWorld", false)]
     public void ReadableLuaRun_OnlyChatSenderRelaysAuthoritativeRoster(
         string senderName,
         string localName,

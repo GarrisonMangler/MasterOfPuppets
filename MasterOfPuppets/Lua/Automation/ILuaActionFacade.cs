@@ -37,6 +37,7 @@ public interface ILuaActionFacade {
     Task<IReadOnlyList<GearsetDescriptor>> ListGearsetsAsync(uint? classJobId, CancellationToken cancellationToken);
     Task<GearsetResolution> FindGearsetAsync(GearsetSelector selector, uint? requiredClassJobId, CancellationToken cancellationToken);
     Task<GearsetResolution> EquipGearsetAsync(GearsetSelector selector, uint? requiredClassJobId, CancellationToken cancellationToken);
+    Task<LuaAutomationResult> EquipArmouryItemAsync(string itemName, CancellationToken cancellationToken);
     Task<GearsetResolution> ChangeJobAsync(uint classJobId, GearsetSelector selector, CancellationToken cancellationToken);
     Task<LuaAutomationResult> SetWalkingAsync(string mode, string scope, CancellationToken cancellationToken);
     Task<LuaAutomationResult> StopMovementAsync(string scope, CancellationToken cancellationToken);

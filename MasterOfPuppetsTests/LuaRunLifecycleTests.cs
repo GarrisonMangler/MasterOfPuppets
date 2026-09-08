@@ -57,6 +57,12 @@ public class LuaRunLifecycleTests {
     }
 
     [Fact]
+    public void RunInstance_Rejects_Unbounded_Duration() {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new LuaRunInstance(
+            "run-unbounded", "Unbounded", new string('u', 64), 0, 1, 1, Timeout.InfiniteTimeSpan));
+    }
+
+    [Fact]
     public void RunInstance_Captures_Structured_Quota_Error() {
         using var run = new LuaRunInstance(
             "run-failed", "Failed", new string('c', 64), 0, 1, 1, TimeSpan.FromMinutes(1));

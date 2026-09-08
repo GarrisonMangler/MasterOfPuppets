@@ -40,6 +40,7 @@ public sealed class SimpleInputMovement : IDisposable {
         cts?.Cancel();
         cts?.Dispose();
         StopStrategies();
+        _formationNatural.Dispose();
         RestoreControlBaseline();
         RestoreWalkBaseline();
         _forwardInput.Dispose();
@@ -220,19 +221,13 @@ public sealed class SimpleInputMovement : IDisposable {
             return;
 
         var character = &player->Character;
-        if (!HasCancelableEmoteState(
-                character->Mode is FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterModes.EmoteLoop
-                    or FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterModes.InPositionLoop,
-                character->Timeline.BaseOverride,
-                character->Timeline.LipsOverride,
-                character->EmoteController.IsEmoting(),
-                character->EmoteController.IsInEmoteLoop()))
+        var emoteId = character->EmoteController.EmoteId;
+        if (!HasCancelableEmoteState(emoteId, EmoteHelper.IsPersistent(emoteId)))
             return;
 
-        // Preserve the game's authoritative interruption before clearing the
-        // local fields. Some persistent emotes leave only timeline state set;
-        // clearing that state alone lets the animation survive on other
-        // clients or be restored by a stale actor snapshot.
+        // Only confirmed looping emotes are interrupted for movement. Finite
+        // emotes also use timeline overrides and report IsEmoting(), but must
+        // be allowed to finish while live formations continue to steer.
         const int emoteLoopExitInPlaceCommand = 0x1F7;
         if (!FFXIVClientStructs.FFXIV.Client.Game.GameMain.ExecuteCommand(
                 emoteLoopExitInPlaceCommand, 0, 0, 0, 0)) {
@@ -253,16 +248,9 @@ public sealed class SimpleInputMovement : IDisposable {
     }
 
     internal static bool HasCancelableEmoteState(
-        bool isLoopMode,
-        uint baseOverride,
-        uint lipsOverride,
-        bool controllerReportsEmoting,
-        bool controllerReportsLoop) =>
-        isLoopMode
-        || baseOverride != 0
-        || lipsOverride != 0
-        || controllerReportsEmoting
-        || controllerReportsLoop;
+        uint emoteId,
+        bool emoteIsPersistent) =>
+        emoteId != 0 && emoteIsPersistent;
 
     public static ArrivalMovementState GetArrivalState(
         float distance,

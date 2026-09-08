@@ -33,17 +33,22 @@ internal partial class IpcProvider {
     private static string FormatInlineVarValue(string value) =>
         string.IsNullOrEmpty(value) ? "\"\"" : value;
 
-    public void UpdateMacroVariables(IReadOnlyDictionary<string, string> variables) {
+    public void UpdateMacroVariables(
+        IReadOnlyDictionary<string, string> variables,
+        string? luaSelector = null) {
         if (variables.Count == 0)
             return;
 
         if (!Plugin.Config.SyncClients) {
-            ApplyActiveVariableUpdates(variables);
+            ApplyActiveVariableUpdates(variables, luaSelector);
             return;
         }
 
         var varsToken = "-var=" + string.Join(";", variables.Select(kv => $"${kv.Key}={FormatInlineVarValue(kv.Value)}"));
-        BroadCast(IpcMessage.Create(IpcMessageType.UpdateMacroVariables, varsToken).Serialize(), includeSelf: true);
+        BroadCast(IpcMessage.Create(
+            IpcMessageType.UpdateMacroVariables,
+            varsToken,
+            luaSelector ?? string.Empty).Serialize(), includeSelf: true);
     }
 
     [IpcHandle(IpcMessageType.UpdateMacroVariables)]
@@ -53,12 +58,16 @@ internal partial class IpcProvider {
 
         var variables = ArgumentParser.ParseInlineVars(message.StringData[0]);
         if (variables.Count > 0)
-            ApplyActiveVariableUpdates(variables);
+            ApplyActiveVariableUpdates(
+                variables,
+                message.StringData.Length > 1 ? message.StringData[1] : null);
     }
 
-    private void ApplyActiveVariableUpdates(IReadOnlyDictionary<string, string> variables) {
+    private void ApplyActiveVariableUpdates(
+        IReadOnlyDictionary<string, string> variables,
+        string? luaSelector = null) {
         Plugin.MacroHandler.UpdateActiveMacroVariables(variables);
-        Plugin.LuaScriptManager.UpdateActiveVariables(variables);
+        Plugin.LuaScriptManager.UpdateActiveVariables(variables, luaSelector);
     }
 
     [IpcHandle(IpcMessageType.RunMacro)]

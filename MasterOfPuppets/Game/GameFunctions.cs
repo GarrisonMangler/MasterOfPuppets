@@ -54,7 +54,11 @@ public static unsafe class GameFunctions {
         pm->Move.Interpolation.DesiredRotation = angle.Rad;
     }
 
-    // TODO: find why this simply use wont work with move/formation
+    /// <summary>
+    /// Sets character facing without invoking the game's action auto-face path.
+    /// This is used by continuously steered formations so character rotation does
+    /// not drag or correct the player's camera on every framework update.
+    /// </summary>
     public static void FaceDirectionCS(Angle angle) {
         var player = DalamudApi.ObjectTable.LocalPlayer;
         if (player == null) return;
@@ -62,6 +66,11 @@ public static unsafe class GameFunctions {
         var csPlayer = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)player.Address;
         if (csPlayer == null) return;
         csPlayer->SetRotation(angle.Rad);
+
+        var pm = (PlayerMove*)player.Address;
+        pm->Move.Interpolation.DesiredRotation = angle.Rad;
+        pm->Move.Interpolation.OriginalRotation = angle.Rad;
+        pm->Move.Interpolation.RotationInterpolationInProgress = false;
     }
 
 

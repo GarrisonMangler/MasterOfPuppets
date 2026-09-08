@@ -442,6 +442,20 @@ public static partial class MopCommandsHelper {
         },
         new MopAction {
             Category = MopActionCategory.PluginCommand,
+            TextCommand = "/mop equipitem \"<item name>\"",
+            SuggestionCommand = "/mop equipitem ",
+            Example = """
+            /mop equipitem "Augmented Cryptlurker's Sword"
+            """,
+            Notes = """
+            * This is a plugin command (works only on local clients)
+            Finds an exact item name in the armoury chest and submits an equip request without
+            requiring the armoury category or item slot. A ring uses the first available ring
+            slot; the request is rejected when both ring slots are occupied.
+            """
+        },
+        new MopAction {
+            Category = MopActionCategory.PluginCommand,
             TextCommand = "/mop movegearsets <gearset1,gearset2,...>",
             SuggestionCommand = "/mop movegearsets ",
             Example = """

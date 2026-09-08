@@ -49,7 +49,7 @@ public sealed class LuaChatSyncFragmentationTests {
         for (var index = 0; index < fragments.Length; index++) {
             var status = assembler.Accept(
                 fragments[index],
-                "Kazuko Aura@Sargatanas",
+                "Character Alpha@ExampleWorld",
                 now.AddMilliseconds(index),
                 out completedScript,
                 out completedToken,
@@ -86,15 +86,15 @@ public sealed class LuaChatSyncFragmentationTests {
         var now = DateTimeOffset.UtcNow;
 
         Assert.Equal(LuaChatSyncAssemblyStatus.Pending,
-            assembler.Accept(first, "Kazuko Aura@Sargatanas", now, out _, out _, out error));
+            assembler.Accept(first, "Character Alpha@ExampleWorld", now, out _, out _, out error));
         Assert.Empty(error);
         Assert.Equal(LuaChatSyncAssemblyStatus.Pending,
-            assembler.Accept(first, "Kazuko Aura@Sargatanas", now, out _, out _, out error));
+            assembler.Accept(first, "Character Alpha@ExampleWorld", now, out _, out _, out error));
         Assert.Empty(error);
 
         var conflicting = first with { Payload = first.Payload[..^1] + (first.Payload[^1] == 'A' ? "B" : "A") };
         Assert.Equal(LuaChatSyncAssemblyStatus.Rejected,
-            assembler.Accept(conflicting, "Kazuko Aura@Sargatanas", now, out _, out _, out error));
+            assembler.Accept(conflicting, "Character Alpha@ExampleWorld", now, out _, out _, out error));
         Assert.Contains("conflicting", error);
         Assert.Equal(0, assembler.Count);
     }
@@ -114,11 +114,11 @@ public sealed class LuaChatSyncFragmentationTests {
         var assembler = new LuaChatSyncFragmentAssembler(TimeSpan.FromSeconds(1));
         var now = DateTimeOffset.UtcNow;
         Assert.Equal(LuaChatSyncAssemblyStatus.Pending,
-            assembler.Accept(first, "Kazuko Aura@Sargatanas", now, out _, out _, out error));
+            assembler.Accept(first, "Character Alpha@ExampleWorld", now, out _, out _, out error));
 
         var different = first with { MessageId = Guid.NewGuid() };
         Assert.Equal(LuaChatSyncAssemblyStatus.Pending,
-            assembler.Accept(different, "Kazuko Aura@Sargatanas", now.AddSeconds(2), out _, out _, out error));
+            assembler.Accept(different, "Character Alpha@ExampleWorld", now.AddSeconds(2), out _, out _, out error));
         Assert.Equal(1, assembler.Count);
     }
 
@@ -156,10 +156,10 @@ public sealed class LuaChatSyncFragmentationTests {
         Seed = 793223713,
         BundleHash = "6338b6ed83e7cb7db084db1caa3891f194e3e40f8e3a85d9d3cbc15d709774ff",
         RequiredResources = LuaResourceKind.ChatActionBudget | LuaResourceKind.GameActions,
-        RunTargetName = "Kazuko Aura@Sargatanas",
+        RunTargetName = "Character Alpha@ExampleWorld",
         RunTargetEntityId = 0x12345678,
         Variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
-            ["anchor"] = "Kazuko Aura@Sargatanas",
+            ["anchor"] = "Character Alpha@ExampleWorld",
             ["group"] = "32 Ordered",
             ["visible_only"] = "true",
             ["horizontal"] = "0.25",

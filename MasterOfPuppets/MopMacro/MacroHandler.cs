@@ -131,6 +131,7 @@ public partial class MacroHandler : IDisposable {
             ["moptargetmyminion"] = new(HandleMopTargetMyMinion, SkipGlobalDelay: CommandSkipsGlobalDelay("moptargetmyminion")),
             ["mopaction"] = new(HandleMopAction),
             ["mopitem"] = new(HandleMopItem),
+            ["mopequipitem"] = new(HandleMopEquipItem),
             ["moppetbarslot"] = new(HandleMopPetBarSlot),
             ["mophotbar"] = new(HandleMopHotbar),
             ["mophotbaremote"] = new(HandleMopHotbarEmote),

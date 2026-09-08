@@ -8,10 +8,11 @@ namespace MasterOfPuppets.Movement;
 /// <summary>
 /// Follows the exact live formation slot without projecting it forward.
 /// </summary>
-internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy {
+internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy, IDisposable {
     private const float MaximumTurnRateRadiansPerSecond = 2.5f;
 
     private readonly ForwardInputMovementController _forwardInput;
+    private OverrideMovement? _relativeMovement;
     private readonly FormationTargetTracker _tracker = new();
     private float? _faceDirection;
     private float _precision;
@@ -20,7 +21,6 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
     private bool _usePursuitTarget;
     private bool _allowHoldWhileTargetMoving;
     private bool _rateLimitTravelFacing;
-    private MovementDirection _relativeMovementDirection;
     private bool _holding;
     private long _lastSteeringUpdateMs;
 
@@ -38,7 +38,6 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
         _usePursuitTarget = context.UsePursuitTarget;
         _allowHoldWhileTargetMoving = context.AllowHoldWhileTargetMoving;
         _rateLimitTravelFacing = context.RateLimitTravelFacing;
-        _relativeMovementDirection = MovementDirection.None;
         _holding = false;
         _lastSteeringUpdateMs = Environment.TickCount64;
     }
@@ -61,7 +60,8 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
     }
 
     public bool IsSlotMoving => _tracker.IsSlotMoving;
-    public bool IsIssuingMovement => _forwardInput.Direction != MovementDirection.None;
+    public bool IsIssuingMovement => _forwardInput.Direction != MovementDirection.None
+        || _relativeMovement?.Enabled == true;
 
     public SimpleMovementUpdateResult Update(SimpleMovementContext context, Vector3 playerPosition) {
         var slotMoving = _tracker.IsSlotMoving;
@@ -73,6 +73,7 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
             slotMoving && !_allowHoldWhileTargetMoving);
         if (_holding) {
             _forwardInput.Stop();
+            DisableRelativeMovement();
             ApplyFormationFacing();
             return SimpleMovementUpdateResult.Running;
         }
@@ -84,19 +85,19 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
             : _tracker.Target;
 
         if (_useFormationRelativeMovement && _faceDirection is { } relativeFacing) {
+            _forwardInput.Stop();
             if (_rateLimitTravelFacing)
                 ApplyRateLimitedTravelFacing(relativeFacing);
             else
                 ApplyFormationFacing();
-            _relativeMovementDirection = FormationTargetTracker.SelectRelativeMovementDirection(
-                playerPosition,
-                target,
-                relativeFacing,
-                _relativeMovementDirection);
-            _forwardInput.Move(_relativeMovementDirection);
+            _relativeMovement ??= new OverrideMovement { IgnoreUserInput = true };
+            _relativeMovement.DesiredPosition = target;
+            _relativeMovement.Precision = 0f;
+            _relativeMovement.Enabled = true;
             return SimpleMovementUpdateResult.Running;
         }
 
+        DisableRelativeMovement();
         var desiredAngle = distance > 0.15f || !_lastIssuedFormationFacing.HasValue
             ? MathF.Atan2(target.X - playerPosition.X, target.Z - playerPosition.Z)
             : _lastIssuedFormationFacing.Value;
@@ -136,7 +137,7 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
             desiredAngle,
             maximumStep);
         if (MathF.Abs(delta) >= FormationTargetTracker.FacingUpdateThresholdRadians)
-            GameFunctions.FaceDirection(nextRotation.Radians());
+            ApplyFacing(nextRotation);
     }
 
     private void ApplyFormationFacing() {
@@ -144,20 +145,38 @@ internal sealed class FormationNaturalMovementStrategy : ISimpleMovementStrategy
             || !FormationTargetTracker.ShouldUpdateFacing(_lastIssuedFormationFacing, rotation))
             return;
 
-        GameFunctions.FaceDirection(rotation.Radians());
+        ApplyFacing(rotation);
         _lastIssuedFormationFacing = rotation;
+    }
+
+    private void ApplyFacing(float rotation) {
+        if (_useFormationRelativeMovement)
+            GameFunctions.FaceDirectionCS(rotation.Radians());
+        else
+            GameFunctions.FaceDirection(rotation.Radians());
     }
 
     public void Stop() {
         _forwardInput.Stop();
+        DisableRelativeMovement();
         _holding = false;
         _lastIssuedFormationFacing = null;
         _useFormationRelativeMovement = false;
         _usePursuitTarget = false;
         _allowHoldWhileTargetMoving = true;
         _rateLimitTravelFacing = false;
-        _relativeMovementDirection = MovementDirection.None;
         _lastSteeringUpdateMs = 0;
         _precision = 0f;
+    }
+
+    public void Dispose() {
+        Stop();
+        _relativeMovement?.Dispose();
+        _relativeMovement = null;
+    }
+
+    private void DisableRelativeMovement() {
+        if (_relativeMovement != null)
+            _relativeMovement.Enabled = false;
     }
 }

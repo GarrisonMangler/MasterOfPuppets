@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -220,8 +222,22 @@ internal sealed class LuaScriptManager : IDisposable {
         if (!requiredResources.HasValue)
             ReplaceLegacyRuns();
 
-        if (sharedTimeSeconds == null && startUtcTicks > 0)
-            sharedTimeSeconds = () => Math.Max(0.0, (DateTime.UtcNow.Ticks - startUtcTicks) / (double)TimeSpan.TicksPerSecond);
+        long synchronizedStartTimestamp = 0;
+        if (sharedTimeSeconds == null) {
+            if (startServerTimeSeconds is > 0) {
+                // The server clock establishes the same start boundary on every
+                // PC. Once crossed, a local monotonic clock supplies smooth
+                // sub-second choreography without inheriting wall-clock skew.
+                sharedTimeSeconds = () => {
+                    var timestamp = System.Threading.Volatile.Read(ref synchronizedStartTimestamp);
+                    return timestamp == 0
+                        ? 0.0
+                        : Stopwatch.GetElapsedTime(timestamp).TotalSeconds;
+                };
+            } else if (startUtcTicks > 0) {
+                sharedTimeSeconds = () => Math.Max(0.0, (DateTime.UtcNow.Ticks - startUtcTicks) / (double)TimeSpan.TicksPerSecond);
+            }
+        }
 
         var runId = CreateUniqueRunId(startUtcTicks, seed, scriptHash);
         var instance = new LuaRunInstance(
@@ -275,6 +291,7 @@ internal sealed class LuaScriptManager : IDisposable {
             lease!,
             resources,
             new LuaTrajectoryController(_plugin),
+            new LuaPetTrajectoryController(_plugin),
             new LuaActorFollowController(_plugin),
             new LuaChatMessageCoordinator(),
             new LuaEventHub(),
@@ -309,6 +326,42 @@ internal sealed class LuaScriptManager : IDisposable {
             : FormationCharacterName.FormatPlayerNameWorld(
                 DalamudApi.PlayerState.CharacterName,
                 DalamudApi.PlayerState.HomeWorld.ValueNullable?.Name.ToString());
+        // Use FFXIV's authoritative Unix clock as the wall-clock epoch. Even a
+        // small Windows clock skew is magnified by Eorzea Time's 20.57x rate
+        // (175 Earth seconds equals one Eorzean hour).
+        var serverUnixSeconds = LuaChoreographyClock.GetServerTimeSeconds();
+        var serverClockTimestamp = Stopwatch.GetTimestamp();
+        var anchorSlot = variables?.TryGetValue("mop_anchor_slot", out var encodedAnchorSlot) == true
+            && int.TryParse(encodedAnchorSlot, NumberStyles.Integer, CultureInfo.InvariantCulture, out var synchronizedAnchorSlot)
+            && synchronizedAnchorSlot >= 0
+            && synchronizedAnchorSlot < orderedParticipants.Count
+                ? synchronizedAnchorSlot
+                : Enumerable.Range(0, orderedParticipants.Count).FirstOrDefault(
+                    index => configuredParticipantNames.TryGetValue(orderedParticipants[index], out var name)
+                        && FormationCharacterName.Matches(runTargetName, name),
+                    -1);
+        IReadOnlyList<int> anchorPartySlots = Array.Empty<int>();
+        if (variables?.TryGetValue("mop_anchor_party_slots", out var encodedPartySlots) == true)
+            anchorPartySlots = encodedPartySlots.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(value => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+                    ? parsed
+                    : -1)
+                .Where(index => index >= 0 && index < orderedParticipants.Count)
+                .Distinct()
+                .OrderBy(index => index)
+                .ToArray();
+        if (anchorPartySlots.Count == 0 && anchorSlot >= 0) {
+            var localPartyContentIds = DalamudApi.PartyList
+                .Select(member => member.ContentId)
+                .Where(contentId => contentId != 0)
+                .ToHashSet();
+            if (localPartyContentIds.Contains(orderedParticipants[anchorSlot])) {
+                anchorPartySlots = Enumerable.Range(0, orderedParticipants.Count)
+                    .Where(index => localPartyContentIds.Contains(orderedParticipants[index]))
+                    .ToArray();
+            }
+        }
+
         var context = new LuaScriptContext(
             slot,
             orderedParticipants.Count,
@@ -316,6 +369,10 @@ internal sealed class LuaScriptManager : IDisposable {
             sample => {
                 EnsureResource(managed, LuaResourceKind.Movement, "trajectory_update");
                 managed.Trajectory.Publish(sample);
+            },
+            sample => {
+                EnsureResource(managed, LuaResourceKind.GameActions, "pet_trajectory_update");
+                managed.PetTrajectory.Publish(sample);
             },
             text => {
                 managed.Logs.Append("info", text);
@@ -400,6 +457,10 @@ internal sealed class LuaScriptManager : IDisposable {
             Events: managed.Events,
             ConductorName: conductorName,
             SharedTimeSeconds: sharedTimeSeconds,
+            UtcNow: () => DateTimeOffset.FromUnixTimeSeconds(serverUnixSeconds)
+                .Add(Stopwatch.GetElapsedTime(serverClockTimestamp)),
+            AnchorSlot: anchorSlot,
+            AnchorPartySlots: anchorPartySlots,
             Coordination: coordination,
             GetTargetSpeed: () => managed.Trajectory.AnchorSpeed,
             GetGroup: name => {
@@ -419,11 +480,11 @@ internal sealed class LuaScriptManager : IDisposable {
             UnwatchActor: (watchId, cancellationToken) => DalamudApi.Framework
                 .RunOnFrameworkThread(() => _actorWatches.Unwatch(runId, watchId))
                 .WaitAsync(cancellationToken),
-            RequestGlobalStop: MirrorRunTargetValidator.AppliesTo(scriptName)
+            RequestGlobalStop: MirrorRunTargetValidator.AppliesTo(scriptName, declaredCapabilities)
                 ? (reason, cancellationToken) => _plugin.IpcProvider.BroadcastChatSyncedMirrorStopAsync(
                     runId, reason, slot, cancellationToken)
                 : null,
-            RequestEmoteResync: MirrorRunTargetValidator.AppliesTo(scriptName)
+            RequestEmoteResync: MirrorRunTargetValidator.AppliesTo(scriptName, declaredCapabilities)
                 ? (emoteId, persistent, targetId, cancellationToken) =>
                     _plugin.IpcProvider.BroadcastChatSyncedMirrorEmoteResyncAsync(
                         runId, emoteId, persistent, targetId, cancellationToken)
@@ -436,6 +497,8 @@ internal sealed class LuaScriptManager : IDisposable {
         _ = Task.Run(async () => {
             try {
                 await WaitForStartAsync(instance, startUtcTicks, localStartDelay, startServerTimeSeconds);
+                if (startServerTimeSeconds is > 0 && synchronizedStartTimestamp == 0)
+                    System.Threading.Volatile.Write(ref synchronizedStartTimestamp, Stopwatch.GetTimestamp());
                 var targetStatus = string.IsNullOrWhiteSpace(runTargetName) ? string.Empty : $"target {runTargetName}";
                 instance.MarkRunning(targetStatus);
                 managed.Events.Publish("run.running", new Dictionary<string, string> {
@@ -474,18 +537,26 @@ internal sealed class LuaScriptManager : IDisposable {
             if (run.Instance.Snapshot.State == LuaRunState.Paused)
                 continue;
             run.Trajectory.Update();
+            run.PetTrajectory.Update();
             run.ActorFollow.Update();
             ObserveGameEvents(run);
         }
     }
 
-    public int UpdateActiveVariables(IReadOnlyDictionary<string, string> variables) {
+    public int UpdateActiveVariables(
+        IReadOnlyDictionary<string, string> variables,
+        string? selector = null) {
         if (variables.Count == 0)
             return 0;
 
         ManagedLuaRun[] runs;
         lock (_stateLock)
-            runs = _activeRuns.Values.ToArray();
+            runs = _activeRuns.Values
+                .Where(run => MatchesSelector(
+                    run.Instance.Snapshot.RunId,
+                    run.Instance.Snapshot.ScriptName,
+                    selector))
+                .ToArray();
         foreach (var run in runs) {
             foreach (var (name, value) in variables)
                 run.Variables[name] = value;
@@ -643,19 +714,17 @@ internal sealed class LuaScriptManager : IDisposable {
         long startUtcTicks,
         TimeSpan? localStartDelay,
         long? startServerTimeSeconds) {
-        if (startUtcTicks > 0) {
-            var delay = localStartDelay
-                ?? new DateTime(startUtcTicks, DateTimeKind.Utc) - DateTime.UtcNow;
+        if (localStartDelay.HasValue) {
+            var delay = localStartDelay.Value;
             if (delay > TimeSpan.Zero)
                 await Task.Delay(delay, run.CancellationToken);
-        } else if (startServerTimeSeconds.HasValue) {
+        } else if (startServerTimeSeconds is > 0) {
             while (LuaChoreographyClock.GetServerTimeSeconds() < startServerTimeSeconds.Value) {
                 await run.Control.WaitIfPausedAsync(run.CancellationToken);
                 await Task.Delay(TimeSpan.FromMilliseconds(20), run.CancellationToken);
             }
-        } else {
-            var delay = localStartDelay
-                ?? new DateTime(startUtcTicks, DateTimeKind.Utc) - DateTime.UtcNow;
+        } else if (startUtcTicks > 0) {
+            var delay = new DateTime(startUtcTicks, DateTimeKind.Utc) - DateTime.UtcNow;
             if (delay > TimeSpan.Zero)
                 await Task.Delay(delay, run.CancellationToken);
         }
@@ -749,6 +818,7 @@ internal sealed class LuaScriptManager : IDisposable {
 
     private static void StopMovement(ManagedLuaRun run) {
         run.Trajectory.Stop(stopMovement: true);
+        run.PetTrajectory.Stop();
         run.ActorFollow.Stop(stopMovement: true);
     }
 
@@ -758,8 +828,15 @@ internal sealed class LuaScriptManager : IDisposable {
             : _activeRuns.Values.OrderByDescending(run => run.Instance.CreatedAt).FirstOrDefault();
 
     private static bool Matches(LuaRunSnapshot run, string selector) =>
-        run.RunId.Equals(selector, StringComparison.OrdinalIgnoreCase)
-        || run.ScriptName.Equals(selector, StringComparison.OrdinalIgnoreCase);
+        MatchesSelector(run.RunId, run.ScriptName, selector);
+
+    internal static bool MatchesSelector(string runId, string scriptName, string? selector) {
+        if (string.IsNullOrWhiteSpace(selector))
+            return true;
+        var normalized = selector.Trim();
+        return runId.Equals(normalized, StringComparison.OrdinalIgnoreCase)
+            || scriptName.Equals(normalized, StringComparison.OrdinalIgnoreCase);
+    }
 
     private static string NotFound(string? selector) => string.IsNullOrWhiteSpace(selector)
         ? "No Lua run is active."
@@ -883,6 +960,7 @@ internal sealed class LuaScriptManager : IDisposable {
         LuaResourceLease Lease,
         LuaResourceKind Resources,
         LuaTrajectoryController Trajectory,
+        LuaPetTrajectoryController PetTrajectory,
         LuaActorFollowController ActorFollow,
         LuaChatMessageCoordinator ChatMessages,
         LuaEventHub Events,
