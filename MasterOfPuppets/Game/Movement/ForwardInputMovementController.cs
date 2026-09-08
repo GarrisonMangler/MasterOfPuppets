@@ -35,7 +35,7 @@ internal sealed class ForwardInputMovementController : IDisposable {
             return;
 
         _playerMoveHook = DalamudApi.GameInteropProvider.HookFromSignature<PlayerMoveDelegate>(
-            "E8 ?? ?? ?? ?? 4C 63 4B 04",
+            "E8 ?? ?? ?? ?? 4C 63 4B 04 48 8B 4E 28",
             PlayerMoveDetour);
     }
 

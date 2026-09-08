@@ -18,10 +18,9 @@ public static class GameActionManager {
     // Baseline: commit 162fde51b5e56ca133cbc13502ae03548a23f461; look for
     // ExecuteCommandGTDelegate, executeCommandGTAddress, and ExecuteAction's PetAction case.
     // After a game patch, check those upstream definitions for signature/ABI changes.
-    // Our trailing "41 8B C8 8B F7" disambiguates two matches of BossMod's shorter
-    // signature in the executable validated on 2026-08-30. Revalidate uniqueness
-    // and command 1800's position/argument setup before replacing it; do not copy blindly.
-    private const string PetPlaceCommandSignature = "E8 ?? ?? ?? ?? EB 3D 8B 93 ?? ?? ?? ?? 41 8B C8 8B F7";
+    // Patch 7.56 changed the instructions following this call. BossMod's current
+    // call-site pattern is unique in the 2026-09-08 client and remains ABI-compatible.
+    private const string PetPlaceCommandSignature = "E8 ?? ?? ?? ?? EB 3D 8B 93 ?? ?? ?? ??";
     private const uint PetPlaceCommandId = 1800;
     private const int PetPlaceIntervalMs = 100;
 
@@ -48,51 +47,60 @@ public static class GameActionManager {
         _ = DalamudApi.Framework.RunOnFrameworkThread(() => SubmitPetPlace(location));
     }
 
-    private static unsafe void SubmitPetPlace(Vector3 location) {
+    /// <summary>
+    /// Attempts one placement immediately. Callers must already be on the
+    /// framework thread. This is used by coalescing controllers that own their
+    /// cadence and need to know whether a command was actually submitted.
+    /// </summary>
+    internal static bool TryPlacePetImmediate(Vector3 location) => SubmitPetPlace(location);
+
+    private static unsafe bool SubmitPetPlace(Vector3 location) {
         try {
             if (petPlacementDisposed)
-                return;
+                return false;
 
             if (!float.IsFinite(location.X) || !float.IsFinite(location.Y) || !float.IsFinite(location.Z)) {
                 DalamudApi.PluginLog.Warning("[PlacePet] Rejected non-finite coordinates");
-                return;
+                return false;
             }
 
             var player = DalamudApi.ObjectTable.LocalPlayer;
             var pet = DalamudApi.BuddyList.PetBuddy;
             if (player == null || pet == null || pet.Address == IntPtr.Zero || pet.GameObject == null) {
                 DalamudApi.PluginLog.Warning("[PlacePet] Local player or summoned pet was unavailable");
-                return;
+                return false;
             }
 
             var actionManager = ActionManager.Instance();
             if (actionManager == null) {
                 DalamudApi.PluginLog.Warning("[PlacePet] ActionManager was unavailable");
-                return;
+                return false;
             }
 
             var status = actionManager->GetActionStatus(ActionType.PetAction, PetActionPlaceId);
             if (status != 0) {
                 DalamudApi.PluginLog.Warning($"[PlacePet] Pet Place is unavailable: actionStatus={status}");
-                return;
+                return false;
             }
 
             var now = Environment.TickCount64;
             if (now < nextPetPlaceTick) {
                 DalamudApi.PluginLog.Warning("[PlacePet] Request skipped: minimum interval is 100 ms");
-                return;
+                return false;
             }
 
             if (!EnsurePetPlaceCommand())
-                return;
+                return false;
 
             executePetPlaceCommand!(PetPlaceCommandId, &location, PetActionPlaceId, 0, 0, 0);
             nextPetPlaceTick = now + PetPlaceIntervalMs;
-            DalamudApi.PluginLog.Information(
+            DalamudApi.PluginLog.Debug(
                 $"[PlacePet] ground-command submitted command={PetPlaceCommandId} action={PetActionPlaceId} " +
                 $"location=({location.X:F3}, {location.Y:F3}, {location.Z:F3}); arrival not yet verified");
+            return true;
         } catch (Exception e) {
             DalamudApi.PluginLog.Error(e, $"[PlacePet] Failed to submit pet placement at {location}");
+            return false;
         }
     }
 
