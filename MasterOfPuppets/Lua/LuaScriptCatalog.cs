@@ -44,8 +44,6 @@ internal static class LuaScriptCatalog {
     private const string DefaultEventDrivenCurtainCallFileName = "event_driven_curtain_call.lua";
     public const string DefaultMirrorTargetCombatName = "Mirror Target Combat";
     private const string DefaultMirrorTargetCombatFileName = "mirror_target_combat.lua";
-    public const string DefaultMirrorCombatTargetName = "Mirror Combat Target";
-    private const string DefaultMirrorCombatTargetFileName = "mirror_combat_target.lua";
     private const string CurrentMirrorTargetCombatHash = "3ce370a212818b306dd6836f5d7008b8be10d0b0602850d201433f5d7670ca53";
     public const string DefaultMirrorTargetJobName = "Mirror Target Job";
     private const string DefaultMirrorTargetJobFileName = "mirror_target_job.lua";
@@ -189,23 +187,6 @@ internal static class LuaScriptCatalog {
         foreach (var script in configuration.LuaScripts)
             changed |= script.MigrateMetadata();
         return changed;
-    }
-
-    // Install just this additional script on load; do not reset existing scripts
-    // or reintroduce unrelated defaults into an established user catalog.
-    internal static bool EnsureMirrorCombatTarget(Configuration configuration) {
-        configuration.LuaScripts ??= new();
-        var added = EnsureDefault(
-            configuration,
-            DefaultMirrorCombatTargetName,
-            DefaultMirrorCombatTargetFileName,
-            "Mirrors a visible player's combat and state without changing clients' selected targets. Ordinary actions use each client's current target.",
-            "$all_configured = true",
-            requiredResources: LuaResourceKind.GameActions,
-            declaredCapabilities: ["legacy.flat-api", "mop.actions", "mop.events", "mop.game-state"]);
-        if (added)
-            Find(configuration, DefaultMirrorCombatTargetName)!.MigrateMetadata();
-        return added;
     }
 
     private static bool EnsureDefault(
