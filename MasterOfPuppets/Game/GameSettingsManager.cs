@@ -5,6 +5,7 @@ using System.Linq;
 using Dalamud.Game.Config;
 using Dalamud.Memory;
 
+using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
@@ -19,7 +20,7 @@ public sealed record GameSettingsChangeEntry(int Number, string Source, string K
 public static class GameSettingsManager {
     private static List<string>? _allSettingsKeys;
 
-    //  Debug log
+    // Debug log
     private static int _debugEntryCounter = 0;
     public static bool IsDebugEnabled { get; private set; }
     public static readonly List<GameSettingsChangeEntry> DebugLog = new();
@@ -33,20 +34,20 @@ public static class GameSettingsManager {
         DisableDebug();
     }
 
-    public static unsafe void GetSettings() {
-        var gameConfig = Framework.Instance()->SystemConfig.SystemConfigBase.ConfigBase.ConfigEntry;
-        if (gameConfig == null) return;
+    // public static unsafe void GetSettings() {
+    //     var gameConfig = Framework.Instance()->SystemConfig.SystemConfigBase.ConfigBase.ConfigEntry;
+    //     if (gameConfig == null) return;
 
-        uint displayObjectLimit = gameConfig[(int)ConfigOption.DisplayObjectLimitType].Value.UInt;
-        uint displayObjectLimit2 = gameConfig[(int)ConfigOption.DisplayObjectLimitType2].Value.UInt;
-        // keep game pad enabled when client is inactive
-        var alwaysInput = gameConfig[(int)ConfigOption.AlwaysInput].Value.UInt;
+    //     uint displayObjectLimit = gameConfig[(int)ConfigOption.DisplayObjectLimitType].Value.UInt;
+    //     uint displayObjectLimit2 = gameConfig[(int)ConfigOption.DisplayObjectLimitType2].Value.UInt;
+    //     // keep game pad enabled when client is inactive
+    //     var alwaysInput = gameConfig[(int)ConfigOption.AlwaysInput].Value.UInt;
 
-        DalamudApi.PluginLog.Warning($"DisplayObjectLimit {displayObjectLimit}");
-        DalamudApi.PluginLog.Warning($"DisplayObjectLimit2 {displayObjectLimit2}");
-        DalamudApi.PluginLog.Warning($"alwaysInput {alwaysInput}");
-        // gameConfig[(int)ConfigOption.DisplayObjectLimitType].SetValueUInt((uint)DisplayObjectLimit.Maximum);
-    }
+    //     DalamudApi.PluginLog.Warning($"DisplayObjectLimit {displayObjectLimit}");
+    //     DalamudApi.PluginLog.Warning($"DisplayObjectLimit2 {displayObjectLimit2}");
+    //     DalamudApi.PluginLog.Warning($"alwaysInput {alwaysInput}");
+    //     // gameConfig[(int)ConfigOption.DisplayObjectLimitType].SetValueUInt((uint)DisplayObjectLimit.Maximum);
+    // }
 
     public static unsafe List<string> GetAllGameSettingsKeys() {
         if (_allSettingsKeys != null) return _allSettingsKeys;
@@ -118,12 +119,12 @@ public static class GameSettingsManager {
     }
 
     public static unsafe void ApplyProfile(GameSettingsProfile profile, HashSet<string> allowedKeys) {
-        ApplySnapshot(&Framework.Instance()->SystemConfig.SystemConfigBase.ConfigBase, profile.System, allowedKeys);
-        ApplySnapshot(&Framework.Instance()->SystemConfig.UiConfig, profile.Ui, allowedKeys);
-        ApplySnapshot(&Framework.Instance()->SystemConfig.UiControlConfig, profile.UiControl, allowedKeys);
+        ApplyConfigSnapshot(&Framework.Instance()->SystemConfig.SystemConfigBase.ConfigBase, profile.System, allowedKeys);
+        ApplyConfigSnapshot(&Framework.Instance()->SystemConfig.UiConfig, profile.Ui, allowedKeys);
+        ApplyConfigSnapshot(&Framework.Instance()->SystemConfig.UiControlConfig, profile.UiControl, allowedKeys);
     }
 
-    private static unsafe void ApplySnapshot(ConfigBase* configBase, GameSettingsSnapshot snapshot, HashSet<string> allowedKeys) {
+    private static unsafe void ApplyConfigSnapshot(ConfigBase* configBase, GameSettingsSnapshot snapshot, HashSet<string> allowedKeys) {
         var e = configBase->ConfigEntry;
         for (var i = 0U; i < configBase->ConfigCount; i++, e++) {
             var ptr = (byte*)e->Name;
@@ -135,6 +136,39 @@ public static class GameSettingsManager {
             if (e->Type == 2 && snapshot.UIntSettings.TryGetValue(name, out var uval)) e->SetValueUInt(uval);
             else if (e->Type == 3 && snapshot.FloatSettings.TryGetValue(name, out var fval)) e->SetValueFloat(fval);
             else if (e->Type == 4 && snapshot.StringSettings.TryGetValue(name, out var sval)) e->SetValueString(sval);
+        }
+
+        ApplyScreenChanges();
+    }
+
+    public static unsafe void ApplyScreenChanges() {
+        var envManager = Framework.Instance()->EnvironmentManager;
+        // 3 = Apply from SystemConfig
+        envManager->SetWindowMode(3);
+
+        // screen resolution changes
+        var device = Device.Instance();
+        device->RequestResolutionChange = 1;
+    }
+
+    public static unsafe void SetGameScreenMode(short width, short height, uint screenMode, short refreshRate = 0) {
+        DalamudApi.GameConfig.System.Set("ScreenMode", screenMode);
+        var envManager = Framework.Instance()->EnvironmentManager;
+
+        switch (screenMode) {
+            case (uint)SettingsScreenMode.Windowed:
+                envManager->SetWindowMode(0);
+                envManager->SetWindowModeWindowed(width, height);
+                break;
+
+            case (uint)SettingsScreenMode.Fullscreen:
+                envManager->SetWindowMode(1);
+                envManager->SetWindowModeFullscreen(width, height, refreshRate);
+                break;
+
+            case (uint)SettingsScreenMode.Borderless:
+                envManager->SetWindowMode(2);
+                break;
         }
     }
 
@@ -1466,4 +1500,11 @@ public enum SettingsDisplayObjectLimitType {
     Normal = 3,
     Low = 4,
     Minimum = 5
+}
+
+public enum SettingsScreenMode {
+
+    Windowed = 0,
+    Fullscreen = 1,
+    Borderless = 2
 }
